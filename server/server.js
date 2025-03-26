@@ -144,21 +144,53 @@ const extractPdfTitle = (text, filename = currentPdfName) => {
 const loadPdf = async (pdfPath) => {
   return new Promise((resolve, reject) => {
     const fullPath = path.resolve(__dirname, pdfPath);
-    // This requires 'pdftotext' to be installed on your system (part of poppler-utils)
-    exec(`pdftotext "${fullPath}" -`, (error, stdout, stderr) => {
+    console.log(`Loading PDF from: ${fullPath}`);
+    
+    // Check if file exists
+    if (!fs.existsSync(fullPath)) {
+      console.error(`Error: PDF file does not exist at ${fullPath}`);
+      reject(new Error(`PDF file not found: ${fullPath}`));
+      return;
+    }
+    
+    // Use more reliable pdftotext options for better extraction
+    // -layout preserves the layout, -nopgbrk removes page breaks
+    const pdfCommand = `pdftotext -layout -nopgbrk "${fullPath}" -`;
+    console.log(`Executing command: ${pdfCommand}`);
+    
+    exec(pdfCommand, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error extracting text: ${error}`);
+        if (stderr) {
+          console.error(`pdftotext stderr: ${stderr}`);
+        }
         reject(error);
         return;
       }
-      currentPdfName = path.basename(pdfPath);
-      pdfText = stdout;
-      pdfTitle = extractPdfTitle(stdout);
       
+      currentPdfName = path.basename(pdfPath);
+      
+      // Check if we got any content
+      if (!stdout || stdout.trim().length === 0) {
+        console.error(`Warning: Extracted text is empty for ${fullPath}`);
+        pdfText = "The document appears to be empty or could not be properly extracted.";
+      } else {
+        pdfText = stdout;
+      }
+      
+      // Try to extract a title
+      pdfTitle = extractPdfTitle(pdfText);
+      
+      // Log detailed info for debugging
       console.log(`PDF loaded successfully: ${currentPdfName}`);
       console.log(`PDF text length: ${pdfText.length} characters`);
       console.log(`PDF title detected: ${pdfTitle}`);
-      resolve(stdout);
+      
+      // Log a preview of the content
+      const contentPreview = pdfText.substring(0, 300).replace(/\n/g, ' ');
+      console.log(`Content preview: "${contentPreview}..."`);
+      
+      resolve(pdfText);
     });
   });
 };
@@ -277,6 +309,35 @@ app.post('/api/books/change', async (req, res) => {
   }
 });
 
+// Endpoint to reload the current PDF
+app.post('/api/books/reload', async (req, res) => {
+  try {
+    if (!currentPdfName) {
+      return res.status(400).json({ error: 'No book is currently loaded' });
+    }
+    
+    console.log(`Reloading current PDF: ${currentPdfName}`);
+    
+    // Reload the current PDF
+    await loadPdf(`../public/docs/${currentPdfName}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Successfully reloaded "${currentPdfName}"`,
+      book: {
+        name: currentPdfName,
+        path: `/docs/${currentPdfName}`,
+        current: true,
+        title: pdfTitle,
+        contentLength: pdfText.length
+      }
+    });
+  } catch (error) {
+    console.error('Error reloading PDF:', error);
+    res.status(500).json({ error: 'Failed to reload PDF' });
+  }
+});
+
 // Chat endpoint
 app.post('/api/chat', async (req, res) => {
   try {
@@ -301,9 +362,20 @@ app.post('/api/chat', async (req, res) => {
     }
     
     // Calculate how much text we can include (try to use more of the document)
-    // Most models can handle ~4000 tokens, which is roughly ~12000-16000 characters
-    // Let's aim for 12000 characters from the PDF to be safe
     const maxPdfContentLength = 12000;
+    
+    // Check if we actually have content
+    if (!pdfText || pdfText.trim().length === 0) {
+      console.error("ERROR: PDF text is empty or not loaded correctly");
+      return res.json({ 
+        answer: "I apologize, but there appears to be an issue with the document content. It may not have been loaded correctly. Please try reloading the document or selecting a different one." 
+      });
+    }
+    
+    // Get a sample of the document for debugging
+    const documentPreview = pdfText.substring(0, 300).replace(/\n/g, ' ');
+    console.log(`Document preview: "${documentPreview}..."`);
+    console.log(`Total document length: ${pdfText.length} characters`);
     
     // Prepare prompt for the AI model with much stronger instructions
     const prompt = `
@@ -335,7 +407,12 @@ Human question: ${question}
 
 AI:`;
 
+    // Log useful debugging info
+    console.log(`Processing question: "${question}"`);
+    console.log(`Document stats: ${pdfTitle}, ${pdfText.length} chars, using ${Math.min(pdfText.length, maxPdfContentLength)} chars`);
+    
     // Call Ollama API
+    console.log("Sending request to Ollama API...");
     const response = await axios.post(OLLAMA_API_URL, {
       model: "deepseek-r1:7b",
       prompt: prompt,
@@ -344,6 +421,7 @@ AI:`;
 
     // Extract the AI's response and process it
     let answer = response.data.response;
+    console.log(`Received response of length: ${answer.length} chars`);
     
     // Process the answer to remove thinking parts
     answer = extractFinalAnswer(answer);
@@ -352,6 +430,36 @@ AI:`;
   } catch (error) {
     console.error('Error processing chat request:', error);
     return res.status(500).json({ error: 'Failed to process your question' });
+  }
+});
+
+// Diagnostic endpoint to check document content
+app.get('/api/debug/document', (req, res) => {
+  try {
+    if (!pdfText || pdfText.trim().length === 0) {
+      return res.status(500).json({
+        error: 'No document content loaded',
+        currentPdf: currentPdfName,
+        pdfTitle: pdfTitle
+      });
+    }
+    
+    // Get basic stats about the document
+    const lines = pdfText.split('\n');
+    const nonEmptyLines = lines.filter(line => line.trim().length > 0);
+    
+    // Return stats and a sample of the content
+    return res.json({
+      title: pdfTitle,
+      filename: currentPdfName,
+      totalLength: pdfText.length,
+      totalLines: lines.length,
+      nonEmptyLines: nonEmptyLines.length,
+      sample: pdfText.substring(0, 1000) // First 1000 characters as sample
+    });
+  } catch (error) {
+    console.error('Error in document debug endpoint:', error);
+    return res.status(500).json({ error: 'Failed to get document info' });
   }
 });
 

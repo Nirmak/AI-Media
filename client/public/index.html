@@ -311,6 +311,7 @@
             </div>
             <div class="chat-controls">
                 <button class="control-button" id="clear-conversation">Clear Conversation</button>
+                <button class="control-button" id="reload-book">Reload Book</button>
             </div>
             <div class="chat-messages" id="chat-messages">
                 <div class="message system-message">
@@ -369,6 +370,55 @@
         
         // Book selector
         const bookSelect = document.getElementById('book-select');
+        
+        // Reload book button
+        document.getElementById('reload-book').addEventListener('click', async function() {
+            if (!currentBook) {
+                alert('No book is currently loaded');
+                return;
+            }
+            
+            showLoading(`Reloading ${currentBook.name}...`);
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/books/reload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update current book
+                    currentBook = data.book;
+                    
+                    // Update book title
+                    updateBookTitle(data.book.title || data.book.name);
+                    
+                    // Update PDF viewer (reload iframe)
+                    updatePdfViewer(data.book.path + '?t=' + new Date().getTime());
+                    
+                    // Add system message
+                    const chatMessages = document.getElementById('chat-messages');
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message system-message';
+                    messageDiv.innerHTML = `<div class="message-content">Book "${data.book.title || data.book.name}" reloaded successfully.</div>`;
+                    chatMessages.appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    alert(`Book reloaded successfully. Content length: ${data.book.contentLength} characters.`);
+                } else {
+                    alert(`Failed to reload book: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error reloading book:', error);
+                alert('Failed to reload book. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        });
         
         // Fetch available books
         async function fetchBooks() {
