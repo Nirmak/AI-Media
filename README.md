@@ -5,7 +5,7 @@ A minimal proof-of-concept application that allows users to view a PDF and ask q
 ## Features
 
 - PDF viewing with basic navigation (previous/next page, direct page jump)
-- AI-powered question answering about the PDF content
+- AI-powered question answering about the PDF content using Ollama with deepseek-r1:7b
 - No database, authentication, or complex user management
 - Single PDF handling (in-memory)
 
@@ -30,19 +30,26 @@ A minimal proof-of-concept application that allows users to view a PDF and ask q
 
 - Node.js (v14+ recommended, but works with v12+)
 - NPM or Yarn
+- Ollama installed with deepseek-r1:7b model (run `ollama pull deepseek-r1:7b`)
+- poppler-utils for PDF text extraction (`sudo apt-get install poppler-utils` on Ubuntu/Debian)
 
 ### Configuration
 
 Before running the application, make sure to:
 
-1. Set your OpenAI API key in `server/.env`:
+1. Configure the server settings in `server/.env`:
    ```
-   OPENAI_API_KEY=your_openai_api_key_here
    PORT=5000
    PDF_PATH=../public/docs/sample.pdf
+   OLLAMA_API_URL=http://localhost:11434/api/generate
    ```
 
 2. Place your PDF file in the `public/docs/` directory (a sample PDF is already included).
+
+3. Ensure Ollama is running with the deepseek-r1:7b model:
+   ```
+   ollama run deepseek-r1:7b
+   ```
 
 ### Installation
 
@@ -79,7 +86,7 @@ Before running the application, make sure to:
 1. The server loads the PDF, extracts its text, and provides an API for questions.
 2. The frontend displays the PDF using PDF.js and provides a chat interface.
 3. When a user asks a question, it's sent to the server API.
-4. The server processes the question with OpenAI API and returns an answer based on the PDF content.
+4. The server processes the question with the local Ollama deepseek-r1:7b model and returns an answer based on the PDF content.
 5. The answer is displayed in the chat interface.
 
 ## Development
