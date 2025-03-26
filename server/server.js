@@ -46,10 +46,24 @@ function extractFinalAnswer(text) {
 // Chat endpoint
 app.post('/api/chat', async (req, res) => {
   try {
-    const question = req.body.question;
+    const { question, history = [] } = req.body;
     
     if (!question) {
       return res.status(400).json({ error: 'Question is required' });
+    }
+    
+    // Format conversation history for the prompt
+    let conversationContext = '';
+    if (history.length > 0) {
+      conversationContext = '\nOur conversation so far:\n';
+      history.forEach(msg => {
+        if (msg.role === 'user') {
+          conversationContext += `Human: ${msg.content}\n`;
+        } else if (msg.role === 'assistant') {
+          conversationContext += `AI: ${msg.content}\n`;
+        }
+      });
+      conversationContext += '\n';
     }
     
     // Prepare prompt for the AI model
@@ -57,6 +71,8 @@ app.post('/api/chat', async (req, res) => {
 You are an AI assistant engaging in a conversation about a PDF document. 
 If you need to think through your answer, place your thinking inside <think> </think> tags.
 This thinking will be hidden from the user, so make sure your final answer outside these tags is complete.
+
+${conversationContext ? 'IMPORTANT: You have a memory of our conversation. Refer to it when relevant and don\'t repeat information unnecessarily.' : ''}
 
 FORMAT YOUR RESPONSE USING MARKDOWN:
 - Use **bold** for emphasis
@@ -71,10 +87,10 @@ FORMAT YOUR RESPONSE USING MARKDOWN:
 Here's the content from the document:
 
 ${pdfText.substring(0, 8000)}
+${conversationContext}
+Human: ${question}
 
-Question: ${question}
-
-Answer (using Markdown formatting):`;
+AI (using Markdown formatting):`;
 
     // Call Ollama API
     const response = await axios.post(OLLAMA_API_URL, {
