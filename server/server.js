@@ -9,6 +9,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const PDF_PATH = process.env.PDF_PATH || '../public/docs/sample.pdf';
+const DOCS_DIR = path.resolve(__dirname, '../public/docs');
 const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api/generate';
 
 // Middleware
@@ -17,22 +18,24 @@ app.use(express.json());
 
 // Store PDF content in memory
 let pdfText = '';
+let currentPdfName = path.basename(PDF_PATH);
 
-// Load and parse PDF on server startup using pdftotext (requires poppler-utils)
-const loadPdf = () => {
+// Load and parse PDF file
+const loadPdf = async (pdfPath) => {
   return new Promise((resolve, reject) => {
-    const pdfPath = path.resolve(__dirname, PDF_PATH);
+    const fullPath = path.resolve(__dirname, pdfPath);
     // This requires 'pdftotext' to be installed on your system (part of poppler-utils)
-    exec(`pdftotext "${pdfPath}" -`, (error, stdout, stderr) => {
+    exec(`pdftotext "${fullPath}" -`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error extracting text: ${error}`);
         reject(error);
         return;
       }
+      currentPdfName = path.basename(pdfPath);
       pdfText = stdout;
-      console.log('PDF loaded successfully!');
+      console.log(`PDF loaded successfully: ${currentPdfName}`);
       console.log(`PDF text length: ${pdfText.length} characters`);
-      resolve();
+      resolve(stdout);
     });
   });
 };
@@ -42,6 +45,58 @@ function extractFinalAnswer(text) {
   // Remove content between <think> and </think> tags
   return text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 }
+
+// Endpoint to list available PDFs
+app.get('/api/books', (req, res) => {
+  try {
+    const files = fs.readdirSync(DOCS_DIR);
+    const pdfFiles = files.filter(file => file.toLowerCase().endsWith('.pdf'));
+    
+    const books = pdfFiles.map(file => ({
+      name: file,
+      path: `/docs/${file}`,
+      current: file === currentPdfName
+    }));
+    
+    res.json({ books });
+  } catch (error) {
+    console.error('Error listing PDF files:', error);
+    res.status(500).json({ error: 'Failed to list PDF files' });
+  }
+});
+
+// Endpoint to change the current PDF
+app.post('/api/books/change', async (req, res) => {
+  try {
+    const { filename } = req.body;
+    
+    if (!filename) {
+      return res.status(400).json({ error: 'Filename is required' });
+    }
+    
+    // Check if file exists
+    const fullPath = path.join(DOCS_DIR, filename);
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Load the new PDF
+    await loadPdf(`../public/docs/${filename}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Successfully changed to "${filename}"`,
+      book: {
+        name: filename,
+        path: `/docs/${filename}`,
+        current: true
+      }
+    });
+  } catch (error) {
+    console.error('Error changing PDF:', error);
+    res.status(500).json({ error: 'Failed to change PDF' });
+  }
+});
 
 // Chat endpoint
 app.post('/api/chat', async (req, res) => {
@@ -68,7 +123,7 @@ app.post('/api/chat', async (req, res) => {
     
     // Prepare prompt for the AI model
     const prompt = `
-You are an AI assistant engaging in a conversation about a PDF document. 
+You are an AI assistant engaging in a conversation about a PDF document titled "${currentPdfName}". 
 If you need to think through your answer, place your thinking inside <think> </think> tags.
 This thinking will be hidden from the user, so make sure your final answer outside these tags is complete.
 
@@ -84,7 +139,7 @@ FORMAT YOUR RESPONSE USING MARKDOWN:
 - Use \`\`\`code blocks\`\`\` for examples
 - Use > for quoting text from the document
 
-Here's the content from the document:
+Here's the content from the document "${currentPdfName}":
 
 ${pdfText.substring(0, 8000)}
 ${conversationContext}
@@ -115,7 +170,7 @@ AI (using Markdown formatting):`;
 // Start server
 app.listen(PORT, async () => {
   try {
-    await loadPdf();
+    await loadPdf(PDF_PATH);
     console.log(`Server running on port ${PORT}`);
   } catch (error) {
     console.error('Failed to start server properly:', error);

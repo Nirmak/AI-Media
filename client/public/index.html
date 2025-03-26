@@ -31,18 +31,28 @@
             overflow: hidden;
             transition: width 0.3s ease;
             position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .pdf-header {
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .pdf-toggle {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 10;
             padding: 8px 12px;
             background-color: rgba(0,0,0,0.7);
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+        }
+        .pdf-frame {
+            flex: 1;
+            overflow: hidden;
         }
         .chat-container {
             flex: 1; /* Chat takes most of the space */
@@ -55,6 +65,40 @@
             padding: 20px;
             text-align: center;
             border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-title {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .book-selector {
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .book-selector select {
+            width: 100%;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            padding-right: 30px;
+        }
+        .book-selector:after {
+            content: "▼";
+            font-size: 12px;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
         }
         .chat-messages {
             flex: 1;
@@ -214,17 +258,58 @@
         .control-button:hover {
             background-color: #e9e9e9;
         }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 18px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
     <div class="app-container" id="app-container">
         <div class="pdf-container" id="pdf-container">
-            <button class="pdf-toggle" id="pdf-toggle">Hide PDF</button>
-            <iframe src="/docs/sample.pdf"></iframe>
+            <div class="pdf-header">
+                <button class="pdf-toggle" id="pdf-toggle">Hide PDF</button>
+            </div>
+            <div class="pdf-frame">
+                <iframe id="pdf-frame" src="/docs/sample.pdf"></iframe>
+            </div>
         </div>
         <div class="chat-container">
             <div class="chat-header">
-                <h2>Conversation with the Book</h2>
+                <h2 class="chat-title">Conversation with <span id="book-title">the Book</span></h2>
+            </div>
+            <div class="book-selector">
+                <select id="book-select">
+                    <option value="">Loading books...</option>
+                </select>
             </div>
             <div class="chat-controls">
                 <button class="control-button" id="clear-conversation">Clear Conversation</button>
@@ -240,10 +325,18 @@
             </div>
         </div>
     </div>
+    
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loading-text">Loading...</div>
+    </div>
 
     <script>
         // Store conversation history
         let conversationHistory = [];
+        
+        // Current book
+        let currentBook = null;
         
         // Toggle PDF visibility
         const pdfToggle = document.getElementById('pdf-toggle');
@@ -261,18 +354,123 @@
                 pdfToggle.textContent = 'Show PDF';
             }
         });
+        
+        // Loading overlay functions
+        function showLoading(message = 'Loading...') {
+            document.getElementById('loading-text').textContent = message;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // Clear conversation function
+        function clearConversation() {
+            conversationHistory = [];
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            chatMessages.innerHTML = `
+                <div class="message system-message">
+                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook?.name || 'the book'}".</div>
+                </div>
+            `;
+        }
 
         // Clear conversation button
         document.getElementById('clear-conversation').addEventListener('click', function() {
             if (confirm('Are you sure you want to clear the conversation?')) {
-                conversationHistory = [];
-                const chatMessages = document.getElementById('chat-messages');
-                chatMessages.innerHTML = '';
-                chatMessages.innerHTML = `
-                    <div class="message system-message">
-                        <div class="message-content">Conversation cleared. Ask a new question about the book content.</div>
-                    </div>
-                `;
+                clearConversation();
+            }
+        });
+        
+        // Book selector
+        const bookSelect = document.getElementById('book-select');
+        
+        // Fetch available books
+        async function fetchBooks() {
+            try {
+                const response = await fetch('http://localhost:5000/api/books');
+                const data = await response.json();
+                
+                // Clear previous options
+                bookSelect.innerHTML = '';
+                
+                // Add options for each book
+                data.books.forEach(book => {
+                    const option = document.createElement('option');
+                    option.value = book.name;
+                    option.textContent = book.name;
+                    option.selected = book.current;
+                    bookSelect.appendChild(option);
+                    
+                    if (book.current) {
+                        currentBook = book;
+                        updateBookTitle(book.name);
+                        updatePdfViewer(book.path);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                bookSelect.innerHTML = '<option value="">Error loading books</option>';
+            }
+        }
+        
+        // Change book
+        async function changeBook(bookName) {
+            if (!bookName) return;
+            
+            showLoading(`Loading ${bookName}...`);
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/books/change', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: bookName }),
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update current book
+                    currentBook = data.book;
+                    
+                    // Update book title
+                    updateBookTitle(data.book.name);
+                    
+                    // Update PDF viewer
+                    updatePdfViewer(data.book.path);
+                    
+                    // Clear conversation
+                    clearConversation();
+                } else {
+                    alert(`Failed to change book: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error changing book:', error);
+                alert('Failed to change book. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Update book title
+        function updateBookTitle(bookName) {
+            document.getElementById('book-title').textContent = bookName;
+        }
+        
+        // Update PDF viewer
+        function updatePdfViewer(pdfPath) {
+            document.getElementById('pdf-frame').src = pdfPath;
+        }
+        
+        // Book select change event
+        bookSelect.addEventListener('change', function() {
+            const selectedBook = this.value;
+            if (selectedBook && selectedBook !== currentBook?.name) {
+                changeBook(selectedBook);
             }
         });
 
@@ -281,6 +479,9 @@
             document.querySelectorAll('pre code').forEach((block) => {
                 hljs.highlightBlock(block);
             });
+            
+            // Fetch available books
+            fetchBooks();
         });
 
         // Function to safely render markdown with XSS protection
