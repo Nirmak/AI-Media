@@ -41,13 +41,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .pdf-toggle {
-            padding: 8px 12px;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 4px;
             cursor: pointer;
         }
         .pdf-frame {
@@ -230,15 +223,6 @@
             background-color: #f6f8fa;
         }
         
-        /* PDF controls */
-        .pdf-hidden {
-            width: 0;
-            border: none;
-        }
-        .app-container.fullchat .chat-container {
-            width: 100%;
-        }
-        
         /* Chat controls */
         .chat-controls {
             display: flex;
@@ -296,7 +280,7 @@
     <div class="app-container" id="app-container">
         <div class="pdf-container" id="pdf-container">
             <div class="pdf-header">
-                <button class="pdf-toggle" id="pdf-toggle">Hide PDF</button>
+                <!-- PDF toggle button removed -->
             </div>
             <div class="pdf-frame">
                 <iframe id="pdf-frame" src="/docs/sample.pdf"></iframe>
@@ -338,22 +322,7 @@
         // Current book
         let currentBook = null;
         
-        // Toggle PDF visibility
-        const pdfToggle = document.getElementById('pdf-toggle');
-        const pdfContainer = document.getElementById('pdf-container');
-        const appContainer = document.getElementById('app-container');
-        
-        pdfToggle.addEventListener('click', function() {
-            if (pdfContainer.classList.contains('pdf-hidden')) {
-                pdfContainer.classList.remove('pdf-hidden');
-                appContainer.classList.remove('fullchat');
-                pdfToggle.textContent = 'Hide PDF';
-            } else {
-                pdfContainer.classList.add('pdf-hidden');
-                appContainer.classList.add('fullchat');
-                pdfToggle.textContent = 'Show PDF';
-            }
-        });
+        // Toggle PDF visibility - REMOVED
         
         // Loading overlay functions
         function showLoading(message = 'Loading...') {
@@ -400,13 +369,14 @@
                 data.books.forEach(book => {
                     const option = document.createElement('option');
                     option.value = book.name;
-                    option.textContent = book.name;
+                    // Use the title from content if available, otherwise use filename
+                    option.textContent = book.title || book.name;
                     option.selected = book.current;
                     bookSelect.appendChild(option);
                     
                     if (book.current) {
                         currentBook = book;
-                        updateBookTitle(book.name);
+                        updateBookTitle(book.title || book.name);
                         updatePdfViewer(book.path);
                     }
                 });
@@ -437,8 +407,8 @@
                     // Update current book
                     currentBook = data.book;
                     
-                    // Update book title
-                    updateBookTitle(data.book.name);
+                    // Update book title (use content title if available)
+                    updateBookTitle(data.book.title || data.book.name);
                     
                     // Update PDF viewer
                     updatePdfViewer(data.book.path);

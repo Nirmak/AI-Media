@@ -8,8 +8,27 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const PDF_PATH = process.env.PDF_PATH || '../public/docs/sample.pdf';
 const DOCS_DIR = path.resolve(__dirname, '../public/docs');
+
+// Find first available PDF in docs folder
+const findFirstPdf = () => {
+  try {
+    const files = fs.readdirSync(DOCS_DIR);
+    const pdfFiles = files.filter(file => file.toLowerCase().endsWith('.pdf'));
+    
+    if (pdfFiles.length === 0) {
+      throw new Error('No PDF files found in the docs directory');
+    }
+    
+    return path.join('../public/docs', pdfFiles[0]);
+  } catch (error) {
+    console.error('Error finding PDF files:', error);
+    throw error;
+  }
+};
+
+// Default PDF path - will be set during initialization
+let PDF_PATH = '';
 const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api/generate';
 
 // Middleware
@@ -18,7 +37,30 @@ app.use(express.json());
 
 // Store PDF content in memory
 let pdfText = '';
-let currentPdfName = path.basename(PDF_PATH);
+let currentPdfName = '';
+let pdfTitle = '';
+
+// Extract the title from PDF content
+const extractPdfTitle = (text) => {
+  // Look for potential title patterns in the first few lines
+  const lines = text.split('\n').slice(0, 20).filter(line => line.trim() !== '');
+  
+  // Try to find a line that looks like a title (not too long, possibly capitalized)
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (trimmedLine && 
+        trimmedLine.length > 5 && 
+        trimmedLine.length < 100 && 
+        !trimmedLine.startsWith('http') &&
+        !trimmedLine.includes('@') &&
+        !trimmedLine.match(/^\d+(\.\d+)+$/)) { // Not just version numbers
+      return trimmedLine;
+    }
+  }
+  
+  // Fallback to filename if no good title found
+  return path.basename(currentPdfName, '.pdf');
+};
 
 // Load and parse PDF file
 const loadPdf = async (pdfPath) => {
@@ -33,8 +75,11 @@ const loadPdf = async (pdfPath) => {
       }
       currentPdfName = path.basename(pdfPath);
       pdfText = stdout;
+      pdfTitle = extractPdfTitle(stdout);
+      
       console.log(`PDF loaded successfully: ${currentPdfName}`);
       console.log(`PDF text length: ${pdfText.length} characters`);
+      console.log(`PDF title detected: ${pdfTitle}`);
       resolve(stdout);
     });
   });
@@ -55,7 +100,8 @@ app.get('/api/books', (req, res) => {
     const books = pdfFiles.map(file => ({
       name: file,
       path: `/docs/${file}`,
-      current: file === currentPdfName
+      current: file === currentPdfName,
+      title: file === currentPdfName ? pdfTitle : null
     }));
     
     res.json({ books });
@@ -89,7 +135,8 @@ app.post('/api/books/change', async (req, res) => {
       book: {
         name: filename,
         path: `/docs/${filename}`,
-        current: true
+        current: true,
+        title: pdfTitle
       }
     });
   } catch (error) {
@@ -123,7 +170,7 @@ app.post('/api/chat', async (req, res) => {
     
     // Prepare prompt for the AI model
     const prompt = `
-You are an AI assistant engaging in a conversation about a PDF document titled "${currentPdfName}". 
+You are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". 
 If you need to think through your answer, place your thinking inside <think> </think> tags.
 This thinking will be hidden from the user, so make sure your final answer outside these tags is complete.
 
@@ -139,7 +186,7 @@ FORMAT YOUR RESPONSE USING MARKDOWN:
 - Use \`\`\`code blocks\`\`\` for examples
 - Use > for quoting text from the document
 
-Here's the content from the document "${currentPdfName}":
+Here's the content from the document "${pdfTitle}":
 
 ${pdfText.substring(0, 8000)}
 ${conversationContext}
@@ -170,6 +217,8 @@ AI (using Markdown formatting):`;
 // Start server
 app.listen(PORT, async () => {
   try {
+    // Find and load the first available PDF
+    PDF_PATH = findFirstPdf();
     await loadPdf(PDF_PATH);
     console.log(`Server running on port ${PORT}`);
   } catch (error) {
