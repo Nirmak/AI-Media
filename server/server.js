@@ -289,7 +289,7 @@ app.post('/api/chat', async (req, res) => {
     // Format conversation history for the prompt
     let conversationContext = '';
     if (history.length > 0) {
-      conversationContext = '\nOur conversation so far:\n';
+      conversationContext = 'CONVERSATION HISTORY:\n';
       history.forEach(msg => {
         if (msg.role === 'user') {
           conversationContext += `Human: ${msg.content}\n`;
@@ -300,31 +300,42 @@ app.post('/api/chat', async (req, res) => {
       conversationContext += '\n';
     }
     
-    // Prepare prompt for the AI model
+    // Calculate how much text we can include (try to use more of the document)
+    // Most models can handle ~4000 tokens, which is roughly ~12000-16000 characters
+    // Let's aim for 12000 characters from the PDF to be safe
+    const maxPdfContentLength = 12000;
+    
+    // Get document length info for context
+    const documentInfo = `Document "${pdfTitle}" (${pdfText.length} characters, using first ${Math.min(maxPdfContentLength, pdfText.length)} for analysis)`;
+    
+    // Prepare prompt for the AI model with stronger instructions
     const prompt = `
-You are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". 
-If you need to think through your answer, place your thinking inside <think> </think> tags.
-This thinking will be hidden from the user, so make sure your final answer outside these tags is complete.
+You are an AI assistant discussing the document: "${pdfTitle}".
+Your primary job is to accurately answer questions based ONLY on the document content provided below.
 
-${conversationContext ? 'IMPORTANT: You have a memory of our conversation. Refer to it when relevant and don\'t repeat information unnecessarily.' : ''}
+IMPORTANT INSTRUCTIONS:
+1. Base your answers STRICTLY on the document content provided below.
+2. If the answer isn't found in the provided text, clearly state: "I don't find information about this in the document." DO NOT make up or infer information not present in the text.
+3. When quoting directly from the document, use ">" markdown formatting.
+4. If you need to think through your answer, place your thinking inside <think> </think> tags. This thinking will be hidden from the user.
 
 FORMAT YOUR RESPONSE USING MARKDOWN:
 - Use **bold** for emphasis
 - Use *italics* for subtle emphasis
-- Use ## headings to organize longer answers
-- Use numbered lists (1. 2. 3.) for steps or sequences
+- Use ## headings to organize answers
+- Use numbered lists for sequences
 - Use bullet points for lists of items
-- Use \`code\` for technical terms
-- Use \`\`\`code blocks\`\`\` for examples
-- Use > for quoting text from the document
 
-Here's the content from the document "${pdfTitle}":
+${conversationContext ? conversationContext : ''}
 
-${pdfText.substring(0, 8000)}
-${conversationContext}
-Human: ${question}
+DOCUMENT CONTENT:
+"""
+${pdfText.substring(0, maxPdfContentLength)}
+"""
 
-AI (using Markdown formatting):`;
+Human question: ${question}
+
+AI:`;
 
     // Call Ollama API
     const response = await axios.post(OLLAMA_API_URL, {
