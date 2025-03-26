@@ -341,7 +341,7 @@
             chatMessages.innerHTML = '';
             chatMessages.innerHTML = `
                 <div class="message system-message">
-                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook?.name || 'the book'}".</div>
+                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook?.title || currentBook?.name || 'the book'}".</div>
                 </div>
             `;
         }
@@ -378,6 +378,14 @@
                         currentBook = book;
                         updateBookTitle(book.title || book.name);
                         updatePdfViewer(book.path);
+                        
+                        // Update welcome message with book title
+                        const chatMessages = document.getElementById('chat-messages');
+                        if (chatMessages.children.length === 1 && 
+                            chatMessages.children[0].classList.contains('system-message')) {
+                            chatMessages.children[0].querySelector('.message-content').textContent = 
+                                `Welcome! Ask a question about "${book.title || book.name}".`;
+                        }
                     }
                 });
             } catch (error) {

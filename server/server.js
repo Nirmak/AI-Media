@@ -42,24 +42,102 @@ let pdfTitle = '';
 
 // Extract the title from PDF content
 const extractPdfTitle = (text) => {
-  // Look for potential title patterns in the first few lines
-  const lines = text.split('\n').slice(0, 20).filter(line => line.trim() !== '');
+  // Get the first few pages worth of content for analysis
+  const firstPageLines = text.split('\n').slice(0, 100).filter(line => line.trim() !== '');
+  let candidates = [];
   
-  // Try to find a line that looks like a title (not too long, possibly capitalized)
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (trimmedLine && 
-        trimmedLine.length > 5 && 
-        trimmedLine.length < 100 && 
-        !trimmedLine.startsWith('http') &&
-        !trimmedLine.includes('@') &&
-        !trimmedLine.match(/^\d+(\.\d+)+$/)) { // Not just version numbers
-      return trimmedLine;
+  // Look for likely title patterns
+  for (let i = 0; i < Math.min(firstPageLines.length, 30); i++) {
+    const line = firstPageLines[i].trim();
+    
+    // Skip obvious non-titles
+    if (!line || 
+        line.length < 3 || 
+        line.length > 120 ||
+        line.startsWith('http') ||
+        line.startsWith('www.') ||
+        line.includes('@') ||
+        line.includes('©') ||
+        line.includes('copyright') ||
+        line.includes('all rights reserved') ||
+        line.match(/^\d+(\.\d+)*$/) ||  // Just numbers/versions
+        line.match(/^(page|chapter|section)\s+\d+$/i)) { // Page numbers or chapter headers
+      continue;
+    }
+    
+    let score = 0;
+    
+    // Prioritize lines that appear like titles
+    if (line === line.toUpperCase() && line.length > 5) {
+      score += 10; // All caps is often a title in PDFs
+    }
+    
+    if (line.match(/^[A-Z][^.!?]*$/) && line.length > 10) {
+      score += 5; // Starts with capital, no ending punctuation, good length
+    }
+    
+    // Title-like phrases
+    if (line.match(/^the\s+[a-z]+/i) || 
+        line.match(/^[a-z]+\s+of\s+[a-z]+/i) ||
+        line.match(/^[a-z]+\s+and\s+[a-z]+/i)) {
+      score += 3;
+    }
+    
+    // Position bonus - titles usually appear early
+    score += Math.max(0, 10 - i);
+    
+    // Add to candidates with score
+    candidates.push({ text: line, score, position: i });
+  }
+  
+  // Sort by score (highest first)
+  candidates.sort((a, b) => b.score - a.score);
+  
+  // Try to find specific title patterns if we have enough candidates
+  if (candidates.length > 0) {
+    // Look for "TITLE" pattern (all caps prominent text)
+    const allCapsTitle = candidates.find(c => 
+      c.text === c.text.toUpperCase() && 
+      c.text.length > 5 &&
+      c.text.length < 80 &&
+      !/^\d+/.test(c.text) // Not starting with numbers
+    );
+    
+    if (allCapsTitle) {
+      console.log(`Found likely title (all caps): "${allCapsTitle.text}"`);
+      return allCapsTitle.text;
+    }
+    
+    // Return the highest scoring candidate
+    if (candidates[0].score > 5) {
+      console.log(`Found likely title (highest score ${candidates[0].score}): "${candidates[0].text}"`);
+      return candidates[0].text;
     }
   }
   
-  // Fallback to filename if no good title found
-  return path.basename(currentPdfName, '.pdf');
+  // Extended search - look for specific title keywords in the first 200 lines
+  const extendedLines = text.split('\n').slice(0, 200).filter(line => line.trim() !== '');
+  for (const line of extendedLines) {
+    const trimmed = line.trim();
+    if ((trimmed.toLowerCase().includes('title:') || 
+         trimmed.match(/^title\s*[:-]/i)) && 
+        trimmed.length < 100) {
+      const titleParts = trimmed.split(/:\s*/);
+      if (titleParts.length > 1) {
+        const extractedTitle = titleParts[1].trim();
+        console.log(`Found explicit title marker: "${extractedTitle}"`);
+        return extractedTitle;
+      }
+    }
+  }
+  
+  // If all else fails, use filename without extension
+  const fallbackTitle = path.basename(currentPdfName, '.pdf')
+    .replace(/-/g, ' ')
+    .replace(/_/g, ' ');
+  
+  console.log(`No clear title found, using filename: "${fallbackTitle}"`);
+  return fallbackTitle;
 };
 
 // Load and parse PDF file
