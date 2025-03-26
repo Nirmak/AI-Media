@@ -305,26 +305,24 @@ app.post('/api/chat', async (req, res) => {
     // Let's aim for 12000 characters from the PDF to be safe
     const maxPdfContentLength = 12000;
     
-    // Get document length info for context
-    const documentInfo = `Document "${pdfTitle}" (${pdfText.length} characters, using first ${Math.min(maxPdfContentLength, pdfText.length)} for analysis)`;
-    
-    // Prepare prompt for the AI model with stronger instructions
+    // Prepare prompt for the AI model with much stronger instructions
     const prompt = `
-You are an AI assistant discussing the document: "${pdfTitle}".
-Your primary job is to accurately answer questions based ONLY on the document content provided below.
+You are an AI assistant helping with a document titled "${pdfTitle}".
+Your sole purpose is to answer questions by finding and quoting SPECIFIC information from the document provided below.
 
-IMPORTANT INSTRUCTIONS:
-1. Base your answers STRICTLY on the document content provided below.
-2. If the answer isn't found in the provided text, clearly state: "I don't find information about this in the document." DO NOT make up or infer information not present in the text.
-3. When quoting directly from the document, use ">" markdown formatting.
-4. If you need to think through your answer, place your thinking inside <think> </think> tags. This thinking will be hidden from the user.
+CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:
+1. ONLY discuss information explicitly stated in the document. 
+2. NEVER invent characters, events, or details not present in the text.
+3. When asked about something not in the document, your response MUST be: "I cannot find information about [topic] in the document."
+4. ALWAYS support your answers with direct quotes from the document. Use ">" to quote text.
+5. NEVER fabricate quotes or information.
+6. ALWAYS begin your response by stating whether the information can be found in the document or not.
+7. If thinking through your answer, place that inside <think> </think> tags (will be removed).
 
-FORMAT YOUR RESPONSE USING MARKDOWN:
-- Use **bold** for emphasis
-- Use *italics* for subtle emphasis
-- Use ## headings to organize answers
-- Use numbered lists for sequences
-- Use bullet points for lists of items
+For questions about characters, plot, events, or any elements:
+- Only mention names/elements EXPLICITLY stated in the document
+- Do not infer characters if they are not named
+- Do not make assumptions about the narrative
 
 ${conversationContext ? conversationContext : ''}
 
