@@ -54,17 +54,27 @@ app.post('/api/chat', async (req, res) => {
     
     // Prepare prompt for the AI model
     const prompt = `
-You are an AI assistant answering questions about a PDF document. 
+You are an AI assistant engaging in a conversation about a PDF document. 
 If you need to think through your answer, place your thinking inside <think> </think> tags.
-This thinking will be hidden from the user, so make sure your final answer outside these tags is complete and makes sense on its own.
+This thinking will be hidden from the user, so make sure your final answer outside these tags is complete.
 
-Here's the content from the PDF document:
+FORMAT YOUR RESPONSE USING MARKDOWN:
+- Use **bold** for emphasis
+- Use *italics* for subtle emphasis
+- Use ## headings to organize longer answers
+- Use numbered lists (1. 2. 3.) for steps or sequences
+- Use bullet points for lists of items
+- Use \`code\` for technical terms
+- Use \`\`\`code blocks\`\`\` for examples
+- Use > for quoting text from the document
+
+Here's the content from the document:
 
 ${pdfText.substring(0, 8000)}
 
 Question: ${question}
 
-Answer:`;
+Answer (using Markdown formatting):`;
 
     // Call Ollama API
     const response = await axios.post(OLLAMA_API_URL, {

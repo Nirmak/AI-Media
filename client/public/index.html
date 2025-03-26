@@ -3,71 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Q&A App</title>
+    <title>AI Book Conversation</title>
+    <!-- Adding Markdown parser library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Adding highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             height: 100vh;
+            background-color: #f9f9f9;
         }
         .app-container {
             display: flex;
             width: 100%;
             height: 100%;
+            flex-direction: row-reverse; /* Reverse order to prioritize chat */
         }
         .pdf-container {
-            flex: 1;
-            padding: 20px;
-            border-right: 1px solid #ddd;
+            width: 30%; /* Reduce PDF width */
+            height: 100%;
+            border-left: 1px solid #ddd;
+            overflow: hidden;
+            transition: width 0.3s ease;
+            position: relative;
         }
-        .chat-container {
-            width: 350px;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background-color: #f5f5f5;
-        }
-        .chat-input {
-            padding: 15px;
-            display: flex;
-            border-top: 1px solid #ddd;
-        }
-        input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            margin-left: 10px;
-            padding: 10px 15px;
-            background-color: #4CAF50;
+        .pdf-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            padding: 8px 12px;
+            background-color: rgba(0,0,0,0.7);
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+        }
+        .chat-container {
+            flex: 1; /* Chat takes most of the space */
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
+        .chat-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #e3f2fd;
+            border-bottom-right-radius: 2px;
+        }
+        .ai-message {
+            align-self: flex-start;
+            background-color: #f1f8e9;
+            border-bottom-left-radius: 2px;
+            color: #333;
+        }
+        .system-message {
+            align-self: center;
+            background-color: #f5f5f5;
+            color: #666;
+            font-style: italic;
+            max-width: 90%;
+            text-align: center;
+        }
+        .chat-input {
+            padding: 20px;
+            display: flex;
+            border-top: 1px solid #eee;
+            background-color: white;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .chat-input input:focus {
+            border-color: #4CAF50;
+        }
+        .chat-input button {
+            margin-left: 10px;
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .chat-input button:hover {
+            background-color: #3e8e41;
         }
         iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
+        /* Markdown styling */
+        .message-content {
+            word-break: break-word;
+        }
+        .message-content p {
+            margin: 0 0 10px 0;
+        }
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+        .message-content pre {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            padding: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .message-content code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.9em;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 3px;
+            padding: 0.2em 0.4em;
+        }
+        .message-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .message-content blockquote {
+            margin: 10px 0;
+            padding-left: 16px;
+            border-left: 4px solid #ddd;
+            color: #666;
+        }
+        .message-content ul, .message-content ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .message-content img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        .message-content h1, .message-content h2, .message-content h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        .message-content th, .message-content td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .message-content th {
+            background-color: #f6f8fa;
+        }
+        
+        /* PDF controls */
+        .pdf-hidden {
+            width: 0;
+            border: none;
+        }
+        .app-container.fullchat .chat-container {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="pdf-container">
+    <div class="app-container" id="app-container">
+        <div class="pdf-container" id="pdf-container">
+            <button class="pdf-toggle" id="pdf-toggle">Hide PDF</button>
             <iframe src="/docs/sample.pdf"></iframe>
         </div>
         <div class="chat-container">
+            <div class="chat-header">
+                <h2>Conversation with the Book</h2>
+            </div>
             <div class="chat-messages" id="chat-messages">
-                <p>Welcome! Ask a question about the PDF content.</p>
+                <div class="message system-message">
+                    <div class="message-content">Welcome! Ask a question about the book content.</div>
+                </div>
             </div>
             <div class="chat-input">
                 <input type="text" id="question-input" placeholder="Type your question...">
@@ -77,20 +219,93 @@
     </div>
 
     <script>
+        // Toggle PDF visibility
+        const pdfToggle = document.getElementById('pdf-toggle');
+        const pdfContainer = document.getElementById('pdf-container');
+        const appContainer = document.getElementById('app-container');
+        
+        pdfToggle.addEventListener('click', function() {
+            if (pdfContainer.classList.contains('pdf-hidden')) {
+                pdfContainer.classList.remove('pdf-hidden');
+                appContainer.classList.remove('fullchat');
+                pdfToggle.textContent = 'Hide PDF';
+            } else {
+                pdfContainer.classList.add('pdf-hidden');
+                appContainer.classList.add('fullchat');
+                pdfToggle.textContent = 'Show PDF';
+            }
+        });
+
+        // Initialize highlight.js
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+        });
+
+        // Function to safely render markdown with XSS protection
+        function renderMarkdown(text) {
+            // Configure marked for safety
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: false,
+                sanitize: false, // This is deprecated but we'll handle sanitization differently
+            });
+            
+            // Convert markdown to HTML
+            const rawHtml = marked.parse(text);
+            
+            // Basic sanitization (would be better with a proper sanitizer like DOMPurify)
+            // This is very simplified - in production use a proper sanitizer library
+            const sanitized = rawHtml
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/on\w+="[^"]*"/g, '')
+                .replace(/on\w+='[^']*'/g, '');
+                
+            return sanitized;
+        }
+
+        function addMessage(content, type) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (type === 'user') {
+                // Don't render markdown for user messages, just escape HTML
+                messageContent.textContent = content;
+            } else {
+                // Render markdown for AI messages
+                messageContent.innerHTML = renderMarkdown(content);
+                
+                // Apply syntax highlighting to code blocks
+                messageContent.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+            }
+            
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
         function askQuestion() {
             const questionInput = document.getElementById('question-input');
-            const chatMessages = document.getElementById('chat-messages');
-            
             const question = questionInput.value.trim();
             if (!question) return;
             
             // Add user question to chat
-            chatMessages.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+            addMessage(question, 'user');
             questionInput.value = '';
             
             // Show loading message
-            const loadingId = Date.now();
-            chatMessages.innerHTML += `<p id="loading-${loadingId}"><em>Loading response...</em></p>`;
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai-message loading';
+            loadingDiv.innerHTML = `<div class="message-content"><em>Thinking...</em></div>`;
+            document.getElementById('chat-messages').appendChild(loadingDiv);
             
             // Send question to the server
             fetch('http://localhost:5000/api/chat', {
@@ -103,20 +318,17 @@
             .then(response => response.json())
             .then(data => {
                 // Remove loading message
-                document.getElementById(`loading-${loadingId}`).remove();
+                loadingDiv.remove();
                 
-                // Add AI response to chat
-                chatMessages.innerHTML += `<p><strong>AI:</strong> ${data.answer}</p>`;
-                
-                // Scroll to bottom
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                // Add AI response to chat with markdown
+                addMessage(data.answer, 'ai');
             })
             .catch(error => {
                 // Remove loading message
-                document.getElementById(`loading-${loadingId}`).remove();
+                loadingDiv.remove();
                 
                 // Show error message
-                chatMessages.innerHTML += `<p><strong>Error:</strong> Failed to get response. Please try again.</p>`;
+                addMessage('**Error:** Failed to get response. Please try again.', 'ai');
                 console.error('Error:', error);
             });
         }
