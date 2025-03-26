@@ -84,6 +84,20 @@
             -moz-appearance: none;
             padding-right: 30px;
         }
+        .book-selector select option {
+            padding: 8px;
+            font-size: 16px;
+        }
+        .book-selector select option .book-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .book-selector select option .book-filename {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
         .book-selector:after {
             content: "▼";
             font-size: 12px;
@@ -369,8 +383,16 @@
                 data.books.forEach(book => {
                     const option = document.createElement('option');
                     option.value = book.name;
-                    // Use the title from content if available, otherwise use filename
-                    option.textContent = book.title || book.name;
+                    
+                    // Format option text to display both title and filename
+                    if (book.title && book.title !== book.name) {
+                        // Show both title and filename when they differ
+                        option.textContent = `${book.title} (${book.name})`;
+                    } else {
+                        // Just show the name/title if they're the same
+                        option.textContent = book.name;
+                    }
+                    
                     option.selected = book.current;
                     bookSelect.appendChild(option);
                     

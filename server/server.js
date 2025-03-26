@@ -41,7 +41,7 @@ let currentPdfName = '';
 let pdfTitle = '';
 
 // Extract the title from PDF content
-const extractPdfTitle = (text) => {
+const extractPdfTitle = (text, filename = currentPdfName) => {
   // Get the first few pages worth of content for analysis
   const firstPageLines = text.split('\n').slice(0, 100).filter(line => line.trim() !== '');
   let candidates = [];
@@ -132,7 +132,7 @@ const extractPdfTitle = (text) => {
   }
   
   // If all else fails, use filename without extension
-  const fallbackTitle = path.basename(currentPdfName, '.pdf')
+  const fallbackTitle = path.basename(filename, '.pdf')
     .replace(/-/g, ' ')
     .replace(/_/g, ' ');
   
@@ -169,18 +169,72 @@ function extractFinalAnswer(text) {
   return text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 }
 
+// Extract titles for each PDF without loading the full content
+const extractTitleForBook = async (filename) => {
+  return new Promise((resolve, reject) => {
+    const fullPath = path.join(DOCS_DIR, filename);
+    
+    // Extract just the first few pages to find the title (faster than full book)
+    exec(`pdftotext -f 1 -l 3 "${fullPath}" -`, async (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error extracting text for title: ${error}`);
+        // Don't reject, just return the filename as fallback
+        resolve({
+          name: filename,
+          title: path.basename(filename, '.pdf').replace(/-/g, ' ').replace(/_/g, ' ')
+        });
+        return;
+      }
+      
+      // Use the same title extraction logic
+      const title = extractPdfTitle(stdout, filename);
+      resolve({
+        name: filename,
+        title: title
+      });
+    });
+  });
+};
+
 // Endpoint to list available PDFs
-app.get('/api/books', (req, res) => {
+app.get('/api/books', async (req, res) => {
   try {
     const files = fs.readdirSync(DOCS_DIR);
     const pdfFiles = files.filter(file => file.toLowerCase().endsWith('.pdf'));
     
-    const books = pdfFiles.map(file => ({
-      name: file,
-      path: `/docs/${file}`,
-      current: file === currentPdfName,
-      title: file === currentPdfName ? pdfTitle : null
-    }));
+    // Get titles for all books (in parallel)
+    const bookPromises = pdfFiles.map(async file => {
+      // For the current book, use the cached title
+      if (file === currentPdfName) {
+        return {
+          name: file,
+          path: `/docs/${file}`,
+          current: true,
+          title: pdfTitle
+        };
+      }
+      
+      // For other books, extract title
+      try {
+        const bookInfo = await extractTitleForBook(file);
+        return {
+          name: file,
+          path: `/docs/${file}`,
+          current: false,
+          title: bookInfo.title
+        };
+      } catch (error) {
+        console.error(`Error extracting title for ${file}:`, error);
+        return {
+          name: file,
+          path: `/docs/${file}`,
+          current: false,
+          title: file.replace('.pdf', '').replace(/-/g, ' ').replace(/_/g, ' ')
+        };
+      }
+    });
+    
+    const books = await Promise.all(bookPromises);
     
     res.json({ books });
   } catch (error) {
