@@ -431,6 +431,24 @@
         .download-button:hover {
             background-color: #219653;
         }
+        .view-pages-button {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.2s;
+        }
+        .view-pages-button:hover {
+            background-color: #e8e8e8;
+        }
+        .view-pages-button.active {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -490,32 +508,38 @@
                     <option value="Children's Story">Children's Story</option>
                 </select>
             </div>
-            <div class="form-group" id="page-range-container">
-                <label>Page Range:</label>
-                <div class="page-range">
-                    <input type="number" id="start-page" min="1" value="1" placeholder="Start">
-                    <span>to</span>
-                    <input type="number" id="end-page" min="1" value="5" placeholder="End">
-                </div>
-                <div class="use-entire-doc">
-                    <input type="checkbox" id="use-entire-doc">
-                    <label for="use-entire-doc">Use entire document (first part only)</label>
-                </div>
+        </div>
+        <button class="rewrite-button" id="rewrite-button">Rewrite Document</button>
+        
+        <!-- Generation status display -->
+        <div id="generation-status" style="margin-top: 20px; display: none; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 10px; position: relative;">
+            <div class="status-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span><strong>Processing document...</strong></span>
+                <span id="processing-info">Analyzing structure...</span>
+            </div>
+            <div class="progress-container" style="width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 4px; margin-bottom: 10px;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background-color: #4CAF50; border-radius: 4px; transition: width 0.3s;"></div>
+            </div>
+            <div id="chunk-info" style="font-size: 12px; color: #666;">
+                Currently processing: <span id="current-chunk">-</span>
             </div>
         </div>
-        <button class="rewrite-button" id="rewrite-button">Rewrite Text</button>
         
-        <div class="rewrite-result" id="rewrite-result">
-            <div class="rewrite-tabs">
-                <div class="tab active" data-tab="rewritten">Rewritten Text</div>
-                <div class="tab" data-tab="original">Original Text</div>
+        <!-- Real-time generation output -->
+        <div id="generation-output" style="margin-top: 15px; display: none;">
+            <h4>Generated Output</h4>
+            <div id="output-container" style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; background-color: white; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-size: 14px; line-height: 1.6; font-family: 'Georgia', serif;">
+                <!-- Content will be added here dynamically -->
             </div>
-            <div class="tab-content-container">
-                <div class="tab-content active" id="rewritten-text"></div>
-                <div class="tab-content" id="original-text"></div>
-            </div>
-            <div class="download-container" style="padding: 0 15px 15px;">
-                <button class="download-button" id="download-text">Download as Text File</button>
+            
+            <div class="output-controls" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <button class="download-button" id="download-text">Download as Text File</button>
+                    <button class="control-button" id="copy-text" style="background-color: #f8f9fa;">Copy to Clipboard</button>
+                </div>
+                <div id="navigation-help" style="font-size: 12px; color: #666;">
+                    <p>You can scroll through the text while it's being generated.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -567,7 +591,7 @@
         const bookSelect = document.getElementById('book-select');
         
         // Fetch available books
-        async function fetchBooks() {
+        async function loadBooks() {
             try {
                 const response = await fetch('http://localhost:5000/api/books');
                 const data = await response.json();
@@ -641,6 +665,9 @@
                     
                     // Clear conversation
                     clearConversation();
+                    
+                    // Reset page range inputs for rewriting
+                    resetPageRangeInputs();
                 } else {
                     alert(`Failed to change book: ${data.error}`);
                 }
@@ -677,7 +704,7 @@
             });
             
             // Fetch available books
-            fetchBooks();
+            loadBooks();
         });
 
         // Function to safely render markdown with XSS protection
@@ -789,99 +816,392 @@
         // Rewrite text toggle
         document.getElementById('toggle-rewrite').addEventListener('click', function() {
             document.getElementById('rewrite-container').style.display = 'block';
+            
+            // No need to reset any elements now since page selection was removed
         });
         
         document.getElementById('close-rewrite').addEventListener('click', function() {
             document.getElementById('rewrite-container').style.display = 'none';
         });
         
-        // Tab functionality
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Update active tab
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
+        // Function to navigate PDF to specific page
+        function navigateToPdfPage(pageNumber) {
+            if (!currentBook) {
+                alert('No book is currently loaded');
+                return;
+            }
+            
+            const pdfFrame = document.getElementById('pdf-frame');
+            
+            // Instead of just changing the hash, reload the iframe with the page parameter
+            // This ensures browser compatibility across different PDF viewers
+            let pdfUrl = pdfFrame.src.split('#')[0];
+            
+            // Force a reload by adding a timestamp and the page parameter
+            const timestamp = new Date().getTime();
+            pdfFrame.src = `${pdfUrl}#page=${pageNumber}&t=${timestamp}`;
+            
+            // Add a more visible page indicator to the PDF container
+            const pdfContainer = document.getElementById('pdf-container');
+            
+            // Remove any existing page indicator
+            const existingIndicator = document.querySelector('.pdf-page-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Create a page indicator element
+            const pageIndicator = document.createElement('div');
+            pageIndicator.className = 'pdf-page-indicator';
+            pageIndicator.textContent = `Page ${pageNumber}`;
+            pageIndicator.style.position = 'absolute';
+            pageIndicator.style.top = '40px';
+            pageIndicator.style.left = '50%';
+            pageIndicator.style.transform = 'translateX(-50%)';
+            pageIndicator.style.backgroundColor = 'rgba(52, 152, 219, 0.8)';
+            pageIndicator.style.color = 'white';
+            pageIndicator.style.padding = '5px 10px';
+            pageIndicator.style.borderRadius = '4px';
+            pageIndicator.style.fontSize = '14px';
+            pageIndicator.style.zIndex = '100';
+            pageIndicator.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            
+            // Add fallback instructions for PDF viewers that don't support direct page navigation
+            const fallbackInfo = document.createElement('div');
+            fallbackInfo.className = 'pdf-page-fallback';
+            fallbackInfo.textContent = `If page navigation doesn't work automatically, please manually navigate to page ${pageNumber} in the PDF viewer`;
+            fallbackInfo.style.position = 'absolute';
+            fallbackInfo.style.top = '80px';
+            fallbackInfo.style.left = '50%';
+            fallbackInfo.style.transform = 'translateX(-50%)';
+            fallbackInfo.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            fallbackInfo.style.color = '#444';
+            fallbackInfo.style.padding = '5px 10px';
+            fallbackInfo.style.borderRadius = '4px';
+            fallbackInfo.style.fontSize = '12px';
+            fallbackInfo.style.zIndex = '100';
+            fallbackInfo.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            fallbackInfo.style.maxWidth = '80%';
+            fallbackInfo.style.textAlign = 'center';
+            
+            pdfContainer.appendChild(pageIndicator);
+            pdfContainer.appendChild(fallbackInfo);
+            
+            // Make the indicators fade out after 8 seconds
+            setTimeout(() => {
+                pageIndicator.style.opacity = '0';
+                pageIndicator.style.transition = 'opacity 1s ease';
+                fallbackInfo.style.opacity = '0';
+                fallbackInfo.style.transition = 'opacity 1s ease';
                 
-                // Show selected tab content
-                const tabName = this.getAttribute('data-tab');
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(tabName + '-text').classList.add('active');
-            });
-        });
-        
-        // Toggle page range inputs based on checkbox
-        document.getElementById('use-entire-doc').addEventListener('change', function() {
-            const inputs = document.querySelectorAll('#page-range-container input[type="number"]');
-            inputs.forEach(input => {
-                input.disabled = this.checked;
-            });
-        });
+                // Remove them after fade out
+                setTimeout(() => {
+                    if (pageIndicator.parentNode) {
+                        pageIndicator.parentNode.removeChild(pageIndicator);
+                    }
+                    if (fallbackInfo.parentNode) {
+                        fallbackInfo.parentNode.removeChild(fallbackInfo);
+                    }
+                }, 1000);
+            }, 8000);
+            
+            // Focus on the PDF viewer
+            pdfContainer.scrollIntoView({ behavior: 'smooth' });
+        }
         
         // Rewrite button functionality
         document.getElementById('rewrite-button').addEventListener('click', async function() {
             const style = document.getElementById('style-select').value;
-            const useEntireDoc = document.getElementById('use-entire-doc').checked;
-            let startPage, endPage;
             
-            if (!useEntireDoc) {
-                startPage = parseInt(document.getElementById('start-page').value);
-                endPage = parseInt(document.getElementById('end-page').value);
-                
-                if (isNaN(startPage) || isNaN(endPage) || startPage < 1 || endPage < startPage) {
-                    alert('Please enter a valid page range');
-                    return;
+            // Show the generation status
+            const generationStatus = document.getElementById('generation-status');
+            generationStatus.style.display = 'block';
+            
+            // Show the output container immediately 
+            const generationOutput = document.getElementById('generation-output');
+            generationOutput.style.display = 'block';
+            
+            // Reset output container
+            const outputContainer = document.getElementById('output-container');
+            outputContainer.innerHTML = '';
+            
+            // Add a content div that will be updated
+            const contentDiv = document.createElement('div');
+            contentDiv.id = 'content-text';
+            contentDiv.style.whiteSpace = 'pre-wrap';
+            outputContainer.appendChild(contentDiv);
+            
+            // Update progress bar
+            document.getElementById('progress-bar').style.width = '5%';
+            document.getElementById('processing-info').textContent = 'Analyzing document structure...';
+            document.getElementById('current-chunk').textContent = 'Document analysis';
+            
+            // Change the rewrite button to show it's processing
+            const rewriteButton = this;
+            const originalButtonText = rewriteButton.textContent;
+            rewriteButton.disabled = true;
+            rewriteButton.innerHTML = '<span class="button-spinner"></span> Processing...';
+            rewriteButton.style.opacity = '0.7';
+            
+            // Add a spinner style if it doesn't exist
+            if (!document.querySelector('style[data-spinner-styles]')) {
+                const spinnerStyles = document.createElement('style');
+                spinnerStyles.setAttribute('data-spinner-styles', 'true');
+                spinnerStyles.textContent = `
+                .button-spinner {
+                    display: inline-block;
+                    width: 12px;
+                    height: 12px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    border-top-color: #fff;
+                    animation: spin 1s ease-in-out infinite;
+                    margin-right: 8px;
                 }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                `;
+                document.head.appendChild(spinnerStyles);
             }
             
-            showLoading(`Rewriting text in ${style} style...`);
-            
             try {
-                const response = await fetch('http://localhost:5000/api/rewrite', {
+                // First, request document structure analysis
+                const analysisResponse = await fetch('http://localhost:5000/api/analyze-structure', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ 
-                        style, 
-                        startPage: useEntireDoc ? null : startPage, 
-                        endPage: useEntireDoc ? null : endPage,
-                        entireDocument: useEntireDoc
+                        bookName: currentBook?.name
                     }),
                 });
                 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    // Display the results
-                    document.getElementById('rewritten-text').textContent = data.rewritten.text;
-                    document.getElementById('original-text').textContent = data.original.text;
-                    
-                    // Reset tabs to show the rewritten text first
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    document.getElementById('rewritten-text').classList.add('active');
-                    
-                    document.querySelectorAll('.tab').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    document.querySelector('.tab[data-tab="rewritten"]').classList.add('active');
-                    
-                    // Show the result container
-                    document.getElementById('rewrite-result').style.display = 'block';
-                    
-                    // Setup download functionality
-                    setupDownload(data.rewritten.text, style);
-                } else {
-                    alert(`Error: ${data.error || 'Failed to rewrite text'}`);
+                if (!analysisResponse.ok) {
+                    const error = await analysisResponse.json();
+                    throw new Error(error.error || 'Failed to analyze document structure');
                 }
+                
+                const structureData = await analysisResponse.json();
+                
+                // Update progress
+                document.getElementById('progress-bar').style.width = '15%';
+                document.getElementById('processing-info').textContent = 'Structure analyzed. Starting rewrite...';
+                
+                // Request streaming rewrite with the selected style
+                const rewriteResponse = await fetch('http://localhost:5000/api/rewrite-stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        style,
+                        structure: structureData.structure
+                    }),
+                });
+                
+                if (!rewriteResponse.ok) {
+                    const error = await rewriteResponse.json();
+                    throw new Error(error.error || 'Failed to rewrite text');
+                }
+                
+                // Process the stream
+                const reader = rewriteResponse.body.getReader();
+                const decoder = new TextDecoder();
+                let completeText = '';
+                let chunkCount = 0;
+                let errorCount = 0;
+                const totalChunks = structureData.structure.length;
+                
+                while (true) {
+                    const { value, done } = await reader.read();
+                    
+                    if (done) {
+                        // Processing complete
+                        document.getElementById('progress-bar').style.width = '100%';
+                        document.getElementById('processing-info').textContent = 'Complete!';
+                        document.getElementById('current-chunk').textContent = 'Finished processing';
+                        break;
+                    }
+                    
+                    // Decode and process the chunk
+                    const chunk = decoder.decode(value, { stream: true });
+                    
+                    // Handle JSON parsing in a try-catch block
+                    try {
+                        // Split by newlines in case we get multiple JSON objects
+                        const jsonLines = chunk.split('\n').filter(line => line.trim());
+                        
+                        for (const jsonLine of jsonLines) {
+                            try {
+                                if (!jsonLine.trim()) continue;
+                                
+                                // Parse the JSON data
+                                const data = JSON.parse(jsonLine);
+                                
+                                if (data.type === 'chunk_start') {
+                                    // Starting a new chunk
+                                    chunkCount++;
+                                    errorCount = 0; // Reset error count for new chunk
+                                    
+                                    // Update progress
+                                    const progress = 15 + (85 * (chunkCount / totalChunks));
+                                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                                    document.getElementById('processing-info').textContent = `Processing chunk ${chunkCount} of ${totalChunks}`;
+                                    document.getElementById('current-chunk').textContent = data.title || `Part ${chunkCount}`;
+                                    
+                                    // Add a header for this chunk if it has a title
+                                    if (data.title) {
+                                        const headerElem = document.createElement('h3');
+                                        headerElem.style.marginTop = '20px';
+                                        headerElem.style.marginBottom = '10px';
+                                        headerElem.style.color = '#495057';
+                                        headerElem.textContent = data.title;
+                                        contentDiv.appendChild(headerElem);
+                                    }
+                                } 
+                                else if (data.type === 'token') {
+                                    // New token received
+                                    completeText += data.text;
+                                    
+                                    // Update content preserving HTML formatting
+                                    contentDiv.innerHTML = completeText;
+                                    
+                                    // Auto-scroll to new content only if user is already at the bottom
+                                    const isAtBottom = outputContainer.scrollHeight - outputContainer.scrollTop <= outputContainer.clientHeight + 50;
+                                    if (isAtBottom) {
+                                        outputContainer.scrollTop = outputContainer.scrollHeight;
+                                    }
+                                }
+                                else if (data.type === 'error') {
+                                    // Display error message in the output
+                                    errorCount++;
+                                    const errorElem = document.createElement('div');
+                                    errorElem.className = 'error-message'; // Using the CSS class we'll add
+                                    errorElem.textContent = `Error: ${data.message || 'Unknown error'}`;
+                                    contentDiv.appendChild(errorElem);
+                                    
+                                    // Don't stop processing - we'll continue with the next chunk
+                                    console.warn('Error in stream, but continuing:', data.message);
+                                }
+                            } catch (jsonError) {
+                                errorCount++;
+                                console.warn(`Error parsing JSON: ${jsonError.message}`, jsonLine.substring(0, 150));
+                                
+                                // Only show user errors that keep happening
+                                if (errorCount <= 2) {
+                                    // Try to handle some cases of malformed JSON
+                                    if (jsonLine.includes('token') && jsonLine.includes('text')) {
+                                        try {
+                                            // Try to extract text with a regex
+                                            const textMatch = jsonLine.match(/"text"\s*:\s*"([^"]*)"/);
+                                            if (textMatch && textMatch[1]) {
+                                                completeText += textMatch[1];
+                                                contentDiv.innerHTML = completeText;
+                                                console.log("Recovered text from malformed JSON");
+                                            }
+                                        } catch (e) {
+                                            // Silent fail for recovery attempts
+                                        }
+                                    }
+                                } else if (errorCount === 3) {
+                                    // After multiple errors, show a message once
+                                    const errorNote = document.createElement('div');
+                                    errorNote.className = 'error-message';
+                                    errorNote.textContent = "Some parts of the text may be missing due to formatting issues.";
+                                    contentDiv.appendChild(errorNote);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        errorCount++;
+                        console.error('Stream processing error:', error, chunk.substring(0, 100));
+                        
+                        // Add a warning after several errors
+                        if (errorCount === 3) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-message';
+                            errorDiv.textContent = 'Experiencing some issues with the stream. Processing will continue but some content may be missing.';
+                            contentDiv.appendChild(errorDiv);
+                        }
+                        
+                        // Try to recover by directly appending the text if it looks like content
+                        if (typeof chunk === 'string' && chunk.trim() && !chunk.includes('{') && !chunk.includes('}')) {
+                            completeText += chunk;
+                            contentDiv.innerHTML = completeText;
+                            console.log("Appended raw text after stream error");
+                        }
+                    }
+                }
+                
+                // Setup download functionality with the complete text
+                setupDownload(completeText, style);
+                
+                // Setup copy to clipboard with improved error handling
+                document.getElementById('copy-text').onclick = function() {
+                    navigator.clipboard.writeText(completeText).then(() => {
+                        this.textContent = 'Copied!';
+                        setTimeout(() => {
+                            this.textContent = 'Copy to Clipboard';
+                        }, 2000);
+                    }, (err) => {
+                        console.error('Failed to copy text to clipboard:', err);
+                        
+                        // Create error message
+                        const errorMessage = document.createElement('div');
+                        errorMessage.className = 'error-message';
+                        errorMessage.textContent = 'Failed to copy text to clipboard. Your browser may not support this feature or permission was denied.';
+                        errorMessage.style.marginTop = '10px';
+                        
+                        // Add the error message after the buttons
+                        const outputControls = document.querySelector('.output-controls');
+                        outputControls.appendChild(errorMessage);
+                        
+                        // Auto-remove the error after 5 seconds
+                        setTimeout(() => {
+                            if (errorMessage.parentNode) {
+                                errorMessage.parentNode.removeChild(errorMessage);
+                            }
+                        }, 5000);
+                    });
+                };
+                
+                // After the rewrite processing loop but before the end of the try-catch
+                // Add the CSS for error messages
+                if (!document.querySelector('style[data-error-styles]')) {
+                    const errorStyles = document.createElement('style');
+                    errorStyles.setAttribute('data-error-styles', 'true');
+                    errorStyles.textContent = `
+                    .error-message {
+                        color: #721c24;
+                        background-color: #f8d7da;
+                        border: 1px solid #f5c6cb;
+                        padding: 10px;
+                        margin: 10px 0;
+                        border-radius: 4px;
+                        font-size: 14px;
+                    }
+                    `;
+                    document.head.appendChild(errorStyles);
+                }
+                
             } catch (error) {
                 console.error('Error rewriting text:', error);
-                alert('Failed to rewrite text. Please try again.');
+                
+                // Show error in a non-modal way
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'error-message';
+                errorMessage.textContent = `Error: ${error.message}`;
+                contentDiv.appendChild(errorMessage);
+                
+                // Update status to show error
+                document.getElementById('processing-info').textContent = 'Error occurred';
+                document.getElementById('progress-bar').style.backgroundColor = '#f44336';
             } finally {
-                hideLoading();
+                // Reset the button state
+                rewriteButton.disabled = false;
+                rewriteButton.textContent = originalButtonText;
+                rewriteButton.style.opacity = '1';
             }
         });
         
@@ -902,6 +1222,20 @@
                 document.body.removeChild(a);
             };
         }
+
+        // Function to reset page range inputs to reasonable values
+        function resetPageRangeInputs() {
+            // No longer needed, but keeping a simplified version for backwards compatibility
+            console.log('Page range inputs reset');
+        }
+
+        // Document ready function to initialize UI components
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial books loading
+            loadBooks();
+            
+            // Rest of initialization code
+        });
     </script>
 </body>
 </html> 
