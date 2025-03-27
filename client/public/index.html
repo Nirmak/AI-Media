@@ -380,11 +380,14 @@
         .tab-content-container {
             position: relative;
             width: 100%;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-top: none;
         }
         .tab-content {
             padding: 15px;
             background-color: white;
-            border: 1px solid #ddd;
             border-top: none;
             height: 400px;
             max-height: 400px;
@@ -392,6 +395,17 @@
             white-space: pre-wrap;
             width: 100%;
             box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+        }
+        
+        .tab-content.active {
+            opacity: 1;
+            visibility: visible;
         }
         .use-entire-doc {
             display: flex;
@@ -497,8 +511,8 @@
                 <div class="tab" data-tab="original">Original Text</div>
             </div>
             <div class="tab-content-container">
-                <div class="tab-content" id="rewritten-text"></div>
-                <div class="tab-content" id="original-text" style="display: none;"></div>
+                <div class="tab-content active" id="rewritten-text"></div>
+                <div class="tab-content" id="original-text"></div>
             </div>
             <div class="download-container" style="padding: 0 15px 15px;">
                 <button class="download-button" id="download-text">Download as Text File</button>
@@ -791,9 +805,9 @@
                 // Show selected tab content
                 const tabName = this.getAttribute('data-tab');
                 document.querySelectorAll('.tab-content').forEach(content => {
-                    content.style.display = 'none';
+                    content.classList.remove('active');
                 });
-                document.getElementById(tabName + '-text').style.display = 'block';
+                document.getElementById(tabName + '-text').classList.add('active');
             });
         });
         
@@ -843,6 +857,17 @@
                     // Display the results
                     document.getElementById('rewritten-text').textContent = data.rewritten.text;
                     document.getElementById('original-text').textContent = data.original.text;
+                    
+                    // Reset tabs to show the rewritten text first
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById('rewritten-text').classList.add('active');
+                    
+                    document.querySelectorAll('.tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    document.querySelector('.tab[data-tab="rewritten"]').classList.add('active');
                     
                     // Show the result container
                     document.getElementById('rewrite-result').style.display = 'block';
