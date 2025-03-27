@@ -463,6 +463,157 @@ app.get('/api/debug/document', (req, res) => {
   }
 });
 
+// Extract text from specified page range
+const extractPageRangeText = (text, startPage, endPage) => {
+  if (!text) return '';
+  
+  // Simple heuristic to identify page breaks in the PDF text
+  // This is a basic approach - more sophisticated methods might be needed for complex PDFs
+  const pageMarkers = [];
+  const lines = text.split('\n');
+  
+  // Find page number markers in the text
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // Look for standalone page numbers or common page markers
+    if (
+      (line.match(/^\d+$/) && line.length < 5) || // Standalone page number
+      line.match(/^Page\s+\d+(\s+of\s+\d+)?$/i) || // "Page X" or "Page X of Y"
+      line.match(/^\d+\s*\|\s*Page$/) // Page marker with separator
+    ) {
+      pageMarkers.push(i);
+    }
+  }
+  
+  // If we can't find page markers, try to estimate pages based on average page length
+  if (pageMarkers.length < 2) {
+    const avgPageLength = 3000; // Rough estimate: 3000 characters per page
+    const totalPages = Math.ceil(text.length / avgPageLength);
+    
+    // Ensure page range is valid
+    const validStartPage = Math.max(1, Math.min(startPage, totalPages));
+    const validEndPage = Math.max(validStartPage, Math.min(endPage, totalPages));
+    
+    // Calculate character ranges
+    const startChar = (validStartPage - 1) * avgPageLength;
+    const endChar = Math.min(validEndPage * avgPageLength, text.length);
+    
+    return text.substring(startChar, endChar);
+  }
+  
+  // Use identified page markers to extract the page range
+  // Ensure page range is valid
+  const validStartPage = Math.max(1, Math.min(startPage, pageMarkers.length));
+  const validEndPage = Math.max(validStartPage, Math.min(endPage, pageMarkers.length));
+  
+  // Get the start and end line indices
+  let startLine = validStartPage === 1 ? 0 : pageMarkers[validStartPage - 2] + 1;
+  let endLine = pageMarkers[validEndPage - 1] || lines.length;
+  
+  // Extract the text between those lines
+  return lines.slice(startLine, endLine).join('\n');
+};
+
+// Endpoint to rewrite text in a different style
+app.post('/api/rewrite', async (req, res) => {
+  try {
+    const { style, startPage, endPage, entireDocument } = req.body;
+    
+    if (!style) {
+      return res.status(400).json({ error: 'Style is required' });
+    }
+    
+    // Check if we have a loaded document
+    if (!pdfText || pdfText.trim().length === 0) {
+      return res.status(400).json({ 
+        error: 'No document content is loaded. Please load a document first.' 
+      });
+    }
+    
+    let textToRewrite;
+    
+    if (entireDocument) {
+      // Use the whole document (up to a reasonable limit)
+      textToRewrite = pdfText.substring(0, 15000); // Limit to prevent overwhelming the model
+    } else {
+      // Validate page range
+      if (!startPage || !endPage || startPage > endPage || startPage < 1) {
+        return res.status(400).json({ 
+          error: 'Invalid page range. Please provide valid start and end page numbers.' 
+        });
+      }
+      
+      // Extract text from the specified page range
+      textToRewrite = extractPageRangeText(pdfText, startPage, endPage);
+      
+      // Check if we got any content
+      if (!textToRewrite || textToRewrite.trim().length === 0) {
+        return res.status(400).json({ 
+          error: 'No content found in the specified page range.' 
+        });
+      }
+      
+      // Limit text length to prevent overwhelming the model
+      if (textToRewrite.length > 15000) {
+        textToRewrite = textToRewrite.substring(0, 15000);
+      }
+    }
+    
+    // Prepare prompt for the rewriting task
+    const prompt = `
+You are an expert writer tasked with rewriting text in a specific style.
+
+TASK:
+Rewrite the following content in a "${style}" style. Maintain the core information and message, 
+but adapt the language, tone, vocabulary, and structure to match the requested style.
+
+For reference, here are the characteristics of the requested style:
+
+${style === 'Sci-Fi' ? 
+  '- Use futuristic terminology and concepts\n- Include technological or scientific elements\n- Create a sense of wonder or existential questions\n- May include references to advanced technology, space, or future societies' : 
+  style === 'Romance' ? 
+  '- Use emotive and sensory language\n- Focus on relationships and emotional connections\n- Include more descriptive language about feelings and personal interactions\n- Create a warm, intimate tone' : 
+  style === 'Academic' ? 
+  '- Use formal, objective language\n- Include relevant terminology and scholarly tone\n- Organize content with clear structure\n- Maintain a detached, analytical perspective\n- Reference concepts methodically' : 
+  style === 'Mystery' ?
+  '- Create suspense and intrigue\n- Use foreshadowing and subtle hints\n- Include elements of tension and uncertainty\n- Use descriptive language to set the mood' :
+  style === 'Children\'s Story' ?
+  '- Use simple, clear language\n- Include playful, engaging elements\n- Make concepts accessible for young readers\n- Add a sense of wonder and excitement' :
+  '- Adapt to the requested style\n- Maintain core information while changing the presentation\n- Match typical conventions of the genre'}
+
+ORIGINAL TEXT:
+"""
+${textToRewrite}
+"""
+
+REWRITTEN TEXT IN ${style.toUpperCase()} STYLE:`;
+
+    // Call Ollama API
+    console.log(`Rewriting text in ${style} style, length: ${textToRewrite.length} chars`);
+    const response = await axios.post(OLLAMA_API_URL, {
+      model: "deepseek-r1:7b",
+      prompt: prompt,
+      stream: false
+    });
+
+    // Return the rewritten text
+    return res.json({ 
+      original: {
+        text: textToRewrite,
+        length: textToRewrite.length
+      },
+      rewritten: {
+        style: style,
+        text: response.data.response,
+        length: response.data.response.length
+      } 
+    });
+  } catch (error) {
+    console.error('Error rewriting text:', error);
+    return res.status(500).json({ error: 'Failed to rewrite text' });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   try {
