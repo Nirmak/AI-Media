@@ -596,6 +596,9 @@ REWRITTEN TEXT IN ${style.toUpperCase()} STYLE:`;
       stream: false
     });
 
+    // Process the response to remove thinking parts
+    const rewrittenText = extractFinalAnswer(response.data.response);
+
     // Return the rewritten text
     return res.json({ 
       original: {
@@ -604,8 +607,8 @@ REWRITTEN TEXT IN ${style.toUpperCase()} STYLE:`;
       },
       rewritten: {
         style: style,
-        text: response.data.response,
-        length: response.data.response.length
+        text: rewrittenText,
+        length: rewrittenText.length
       } 
     });
   } catch (error) {
