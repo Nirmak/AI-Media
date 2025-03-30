@@ -481,6 +481,54 @@
             margin-top: 20px;
             color: #333;
         }
+        .book-category {
+            margin-bottom: 10px;
+        }
+        
+        /* Loading animation */
+        .loading-dots {
+            display: inline-flex;
+            align-items: center;
+            height: 1em;
+        }
+        
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: #555;
+            border-radius: 50%;
+            display: inline-block;
+            animation: dots-animation 1.4s infinite ease-in-out both;
+        }
+        
+        .loading-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes dots-animation {
+            0%, 80%, 100% { 
+                transform: scale(0);
+                opacity: 0.2;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Error messages */
+        .error {
+            color: #e53935;
+            padding: 10px;
+            border-left: 3px solid #e53935;
+            background-color: rgba(229, 57, 53, 0.1);
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -1200,6 +1248,140 @@
                 askQuestion();
             }
         });
+
+        // Send question to server
+        async function sendQuestion(question) {
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.innerHTML = `<div class="message-content">${question}</div>`;
+            chatMessages.appendChild(userMessage);
+            
+            // Create a loading message
+            const aiMessage = document.createElement('div');
+            aiMessage.className = 'message ai-message';
+            aiMessage.innerHTML = `<div class="message-content"><div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>`;
+            chatMessages.appendChild(aiMessage);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Disable input during processing
+            questionInput.disabled = true;
+            sendButton.disabled = true;
+            
+            try {
+                // Get conversation history
+                const history = [];
+                const messageElements = document.querySelectorAll('.message');
+                for (let i = 0; i < messageElements.length - 2; i += 2) {
+                    const userMsg = messageElements[i];
+                    const aiMsg = messageElements[i + 1];
+                    if (userMsg && aiMsg) {
+                        history.push({
+                            question: userMsg.querySelector('.message-content').innerText,
+                            answer: aiMsg.querySelector('.message-content').innerText
+                        });
+                    }
+                }
+                
+                // Create EventSource for SSE
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question, history })
+                });
+                
+                // If we got a regular JSON response (non-streaming)
+                if (response.headers.get('Content-Type').includes('application/json')) {
+                    const data = await response.json();
+                    
+                    // Update AI message with answer
+                    aiMessage.innerHTML = `<div class="message-content">${marked.parse(data.answer)}</div>`;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // Highlight code blocks
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                } else {
+                    // Streaming response
+                    // Clear loading message
+                    let responseText = '';
+                    aiMessage.innerHTML = `<div class="message-content"></div>`;
+                    const contentDiv = aiMessage.querySelector('.message-content');
+                    
+                    // Set up event source for streaming
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        
+                        const text = decoder.decode(value);
+                        const eventLines = text.split('\n\n');
+                        
+                        for (const eventLine of eventLines) {
+                            if (!eventLine.trim() || !eventLine.startsWith('data:')) continue;
+                            
+                            try {
+                                const eventData = JSON.parse(eventLine.substring(5).trim());
+                                
+                                // Handle errors
+                                if (eventData.error) {
+                                    contentDiv.innerHTML = `<div class="error">Error: ${eventData.error}</div>`;
+                                    break;
+                                }
+                                
+                                // Handle chunks
+                                if (eventData.chunk) {
+                                    responseText += eventData.chunk;
+                                    contentDiv.innerHTML = marked.parse(responseText);
+                                    
+                                    // Auto-scroll as text comes in
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    
+                                    // Highlight code blocks
+                                    contentDiv.querySelectorAll('pre code').forEach((block) => {
+                                        hljs.highlightBlock(block);
+                                    });
+                                }
+                                
+                                // Handle done event
+                                if (eventData.done) {
+                                    break;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE event:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending question:', error);
+                aiMessage.innerHTML = `<div class="message-content error">Error: Failed to get a response. Please try again later.</div>`;
+            } finally {
+                // Re-enable input
+                questionInput.disabled = false;
+                sendButton.disabled = false;
+                questionInput.focus();
+            }
+        }
+
+        // Handle form submission
+        function handleQuestionSubmit(event) {
+            event.preventDefault();
+            const question = questionInput.value.trim();
+            if (!question) return;
+            
+            sendQuestion(question);
+            questionInput.value = '';
+        }
+        
+        // Add event listeners
+        questionForm.addEventListener('submit', handleQuestionSubmit);
+        sendButton.addEventListener('click', handleQuestionSubmit);
     </script>
 </body>
 </html> 

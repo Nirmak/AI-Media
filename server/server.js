@@ -313,7 +313,7 @@ app.post('/api/chat', async (req, res) => {
     logger.info(`Chat question received: "${question}"`);
     
     // Create a context for the LLM that includes analysis results
-    let prompt = `\nYou are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". \nIf you need to think through your answer, place your thinking inside <think> </think> tags.\nThis thinking will be hidden from the user, so make sure your final answer outside these tags is complete.\n\nIMPORTANT: You have a memory of our conversation. Refer to it when relevant and don't repeat information unnecessarily.\n\nFORMAT YOUR RESPONSE USING MARKDOWN:\n- Use **bold** for emphasis\n- Use *italics* for subtle emphasis\n- Use ## headings to organize longer answers\n- Use numbered lists (1. 2. 3.) for steps or sequences\n- Use bullet points for lists of items\n- Use \`code\` for technical terms\n- Use \`\`\`code blocks\`\`\` for examples\n- Use > for quoting text from the document\n\n`;
+    let prompt = `<｜User｜>\nYou are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". \nIf you need to think through your answer, place your thinking inside <think> </think> tags.\nThis thinking will be hidden from the user, so make sure your final answer outside these tags is complete.\n\nIMPORTANT: You have a memory of our conversation. Refer to it when relevant and don't repeat information unnecessarily.\n\nFORMAT YOUR RESPONSE USING MARKDOWN:\n- Use **bold** for emphasis\n- Use *italics* for subtle emphasis\n- Use ## headings to organize longer answers\n- Use numbered lists (1. 2. 3.) for steps or sequences\n- Use bullet points for lists of items\n- Use \`code\` for technical terms\n- Use \`\`\`code blocks\`\`\` for examples\n- Use > for quoting text from the document\n\n`;
     
     // Add the full text of the book
     prompt += `Here's the full content of the document "${pdfTitle}":\n\n${pdfText}\n\n`;
@@ -329,26 +329,93 @@ app.post('/api/chat', async (req, res) => {
     // Add current question
     prompt += `Human: ${question}\n\n`;
     
-    // Call Ollama API
-    const response = await axios.post(OLLAMA_API_URL, {
-      model: "deepseek-r1:7b",
-      prompt: prompt,
-      stream: false
-    });
-
-    // Extract the AI's response and process it
-    let answer = response.data.response;
+    // Set up SSE for streaming response
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
     
-    // Log the LLM response using our real-time logger
-    logger.llm('Chat', answer);
+    // We need to collect the full response for logging
+    let fullResponse = '';
     
-    // Process the answer to remove thinking parts
-    answer = extractFinalAnswer(answer);
+    // Make the request to Ollama with streaming enabled
+    try {
+      const response = await axios.post(OLLAMA_API_URL, {
+        model: "deepseek-r1:7b",
+        prompt: prompt,
+        stream: true
+      }, {
+        responseType: 'stream'
+      });
+      
+      // Process the streaming response
+      response.data.on('data', (chunk) => {
+        try {
+          const text = chunk.toString();
+          const lines = text.split('\n').filter(line => line.trim());
+          
+          for (const line of lines) {
+            try {
+              const data = JSON.parse(line);
+              
+              if (data.response) {
+                // Remove thinking parts on-the-fly
+                const processedChunk = extractFinalAnswer(data.response);
+                fullResponse += data.response;
+                
+                // Send the chunk to the client
+                res.write(`data: ${JSON.stringify({ chunk: processedChunk })}\n\n`);
+                
+                // If this is the final chunk, also send the 'done' event
+                if (data.done) {
+                  res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+                  
+                  // Log the full response once completed
+                  logger.llm('Chat (Streaming)', fullResponse);
+                  
+                  // End the response
+                  res.end();
+                }
+              }
+            } catch (parseError) {
+              console.error('Error parsing streaming JSON:', parseError);
+            }
+          }
+        } catch (chunkError) {
+          console.error('Error processing chunk:', chunkError);
+        }
+      });
+      
+      // Handle errors in the stream
+      response.data.on('error', (error) => {
+        console.error('Stream error:', error);
+        res.write(`data: ${JSON.stringify({ error: 'Stream error occurred' })}\n\n`);
+        res.end();
+      });
+      
+      // Handle end of stream
+      response.data.on('end', () => {
+        // If we haven't ended the response yet (e.g., if 'done' was never received)
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+      });
+      
+    } catch (error) {
+      // Handle request errors
+      console.error('Error in streaming request:', error);
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      res.end();
+    }
     
-    res.json({ answer });
   } catch (error) {
     console.error('Error in chat:', error);
-    res.status(500).json({ error: 'Failed to generate response', details: error.message });
+    // If we haven't set up SSE headers yet, send a regular error response
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to generate response', details: error.message });
+    } else {
+      // Otherwise, send the error as an SSE event
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      res.end();
+    }
   }
 });
 
