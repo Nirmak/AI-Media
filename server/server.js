@@ -306,50 +306,29 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { question, history = [] } = req.body;
     
-    if (!question) {
-      return res.status(400).json({ error: 'Question is required' });
-    }
+    // Get the book analysis if available
+    const bookAnalysis = bookService.getAnalysisResults(currentPdfName);
+    const hasAnalysis = bookAnalysis && bookAnalysis.status === 'completed';
     
-    // Format conversation history for the prompt
-    let conversationContext = '';
+    logger.info(`Chat question received: "${question}"`);
+    
+    // Create a context for the LLM that includes analysis results
+    let prompt = `\nYou are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". \nIf you need to think through your answer, place your thinking inside <think> </think> tags.\nThis thinking will be hidden from the user, so make sure your final answer outside these tags is complete.\n\nIMPORTANT: You have a memory of our conversation. Refer to it when relevant and don't repeat information unnecessarily.\n\nFORMAT YOUR RESPONSE USING MARKDOWN:\n- Use **bold** for emphasis\n- Use *italics* for subtle emphasis\n- Use ## headings to organize longer answers\n- Use numbered lists (1. 2. 3.) for steps or sequences\n- Use bullet points for lists of items\n- Use \`code\` for technical terms\n- Use \`\`\`code blocks\`\`\` for examples\n- Use > for quoting text from the document\n\n`;
+    
+    // Add the full text of the book
+    prompt += `Here's the full content of the document "${pdfTitle}":\n\n${pdfText}\n\n`;
+    
+    // Add conversation history
     if (history.length > 0) {
-      conversationContext = '\nOur conversation so far:\n';
-      history.forEach(msg => {
-        if (msg.role === 'user') {
-          conversationContext += `Human: ${msg.content}\n`;
-        } else if (msg.role === 'assistant') {
-          conversationContext += `AI: ${msg.content}\n`;
-        }
+      prompt += `Our conversation so far:\n`;
+      history.forEach(exchange => {
+        prompt += `Human: ${exchange.question}\n\nAI (using Markdown formatting): ${exchange.answer}\n\n`;
       });
-      conversationContext += '\n';
     }
     
-    // Prepare prompt for the AI model
-    const prompt = `
-You are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". 
-If you need to think through your answer, place your thinking inside <think> </think> tags.
-This thinking will be hidden from the user, so make sure your final answer outside these tags is complete.
-
-${conversationContext ? 'IMPORTANT: You have a memory of our conversation. Refer to it when relevant and don\'t repeat information unnecessarily.' : ''}
-
-FORMAT YOUR RESPONSE USING MARKDOWN:
-- Use **bold** for emphasis
-- Use *italics* for subtle emphasis
-- Use ## headings to organize longer answers
-- Use numbered lists (1. 2. 3.) for steps or sequences
-- Use bullet points for lists of items
-- Use \`code\` for technical terms
-- Use \`\`\`code blocks\`\`\` for examples
-- Use > for quoting text from the document
-
-Here's the content from the document "${pdfTitle}":
-
-${pdfText.substring(0, 8000)}
-${conversationContext}
-Human: ${question}
-
-AI (using Markdown formatting):`;
-
+    // Add current question
+    prompt += `Human: ${question}\n\n`;
+    
     // Call Ollama API
     const response = await axios.post(OLLAMA_API_URL, {
       model: "deepseek-r1:7b",
@@ -366,10 +345,10 @@ AI (using Markdown formatting):`;
     // Process the answer to remove thinking parts
     answer = extractFinalAnswer(answer);
     
-    return res.json({ answer });
+    res.json({ answer });
   } catch (error) {
-    console.error('Error processing chat request:', error);
-    return res.status(500).json({ error: 'Failed to process your question' });
+    console.error('Error in chat:', error);
+    res.status(500).json({ error: 'Failed to generate response', details: error.message });
   }
 });
 
