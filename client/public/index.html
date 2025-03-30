@@ -293,7 +293,157 @@
         }
         .book-structure {
             padding: 20px;
-            overflow-y: auto;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .analysis-status {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        #analysis-status-message {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar-outer {
+            height: 20px;
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar-inner {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        #analysis-progress-text {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .analysis-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-button:hover {
+            background-color: #3e8e41;
+        }
+        
+        .action-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .analysis-section {
+            margin: 30px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .analysis-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-left: 4px solid #4CAF50;
+            padding-left: 10px;
+        }
+        
+        .analysis-content {
+            line-height: 1.6;
+        }
+        
+        /* Character and theme cards */
+        .character-card, .theme-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .character-name, .theme-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .character-description, .theme-description {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .character-meta, .theme-meta {
+            font-size: 12px;
+            color: #777;
+            margin-top: 8px;
+        }
+        
+        /* Structure segments */
+        .segment-card {
+            background-color: #f5f8ff;
+            border: 1px solid #d0d9f0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .segment-name {
+            font-weight: bold;
+            color: #335599;
+            margin-bottom: 5px;
+        }
+        
+        .segment-location {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        
+        /* TOC styling */
+        .toc-entry {
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .toc-page {
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .book-structure {
+                padding: 10px;
+            }
+            
+            .analysis-section {
+                margin: 20px 0;
+            }
         }
         
         /* Loading overlay */
@@ -327,55 +477,9 @@
             font-size: 18px;
             color: #333;
         }
-        
-        /* Book Structure Analysis Styling */
-        .analysis-section {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 20px;
-        }
-        
-        .analysis-section h2 {
-            color: #4CAF50;
-            margin-bottom: 15px;
-        }
-        
-        .user-story {
-            background-color: #f9f9f9;
-            border-left: 4px solid #4CAF50;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        
-        .user-story h3 {
-            margin-top: 0;
+        .chart-container {
+            margin-top: 20px;
             color: #333;
-        }
-        
-        .user-story-content {
-            font-style: italic;
-            margin: 10px 0;
-            color: #555;
-        }
-        
-        .acceptance-criteria {
-            margin-top: 15px;
-        }
-        
-        .acceptance-criteria h4 {
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: #444;
-        }
-        
-        .acceptance-criteria ul {
-            margin-left: 20px;
-            list-style-type: disc;
-        }
-        
-        .acceptance-criteria li {
-            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -418,216 +522,53 @@
             </div>
             <div id="structure-content" class="tab-content">
                 <div class="book-structure">
-                    <h2>Book Structure Analysis for <span id="structure-book-title">Book Title</span></h2>
+                    <h2>Book Structure</h2>
+                    <h3 id="structure-book-title">Book Title</h3>
                     
-                    <div class="analysis-section">
-                        <h2>1. Intake and Preparation</h2>
-                        
-                        <div class="user-story">
-                            <h3>User Story 1: Ingesting PDF Text</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to open and read the entire text from a local PDF file</p>
-                                <p>So that I can use the complete content as input for further analysis</p>
+                    <!-- Analysis Status Section -->
+                    <div class="analysis-status">
+                        <div id="analysis-status-message">Analysis not started</div>
+                        <div id="analysis-progress-container" style="display: none">
+                            <div class="progress-bar-outer">
+                                <div id="analysis-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
                             </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The system automatically detects and processes the PDF file.</li>
-                                    <li>The system extracts text in a structured format (e.g., plain text, segmented text, etc.).</li>
-                                    <li>The full text is stored or queued for later steps in the pipeline.</li>
-                                </ul>
-                            </div>
+                            <div id="analysis-progress-text">0%</div>
                         </div>
-                        
-                        <div class="user-story">
-                            <h3>User Story 2: Segmenting Text</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to divide the extracted PDF text into smaller "chunks"</p>
-                                <p>So that the local LLM can process it without exceeding its context limits</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The text is split at logical intervals (e.g., by paragraph, page, or token size).</li>
-                                    <li>Each chunk is labeled or indexed to maintain its position in the original text.</li>
-                                    <li>All chunks are stored and accessible for subsequent analysis steps.</li>
-                                </ul>
-                            </div>
+                        <div class="analysis-controls">
+                            <button id="start-analysis-btn" class="action-button">Start Analysis</button>
+                            <button id="refresh-analysis-btn" class="action-button" style="display: none">Refresh Results</button>
                         </div>
                     </div>
                     
-                    <div class="analysis-section">
-                        <h2>2. Contextual Data Retrieval</h2>
-                        
-                        <div class="user-story">
-                            <h3>User Story 3: Gathering Contextual Metadata</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to retrieve metadata (e.g., author info, publication date, historical context) from available local or external sources</p>
-                                <p>So that I can incorporate relevant contextual details during interpretation</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>Metadata sources are identified (local knowledge base, structured files, etc.).</li>
-                                    <li>Metadata is fetched automatically without user input.</li>
-                                    <li>The metadata is stored in a standardized structure for use alongside text analysis results.</li>
-                                </ul>
-                            </div>
+                    <!-- Analysis Results Section -->
+                    <div id="analysis-results" style="display: none">
+                        <div class="analysis-section">
+                            <h3>Plot Summary</h3>
+                            <div id="plot-summary" class="analysis-content"></div>
                         </div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h2>3. Textual Analysis</h2>
                         
-                        <div class="user-story">
-                            <h3>User Story 4: Extracting Content Features</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to process each text chunk with the local LLM</p>
-                                <p>So that I can extract features like key events, characters, themes, and notable stylistic elements</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>Each chunk is passed to the LLM with appropriate instructions.</li>
-                                    <li>The LLM's output is captured in a structured, machine-readable format (e.g., JSON).</li>
-                                    <li>The extracted features are stored in a database or a data structure indexed by chunk ID.</li>
-                                </ul>
+                        <div class="analysis-section">
+                            <h3>Narrative Structure</h3>
+                            <div id="narrative-structure" class="analysis-content">
+                                <div id="structure-type"></div>
+                                <div id="structure-arc"></div>
+                                <div id="structure-segments"></div>
                             </div>
                         </div>
                         
-                        <div class="user-story">
-                            <h3>User Story 5: Logging Intermediate Results</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to keep track of the LLM outputs for each chunk</p>
-                                <p>So that I can review intermediate findings or troubleshoot errors if needed</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The system maintains logs or a record of each chunk's analysis results.</li>
-                                    <li>Each log entry includes the chunk ID and the extracted data.</li>
-                                    <li>Logs can be accessed for auditing or debugging after the analysis is complete.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h2>4. Aggregation and Synthesis</h2>
-                        
-                        <div class="user-story">
-                            <h3>User Story 6: Combining Local Analyses</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to merge the extracted details (themes, characters, style) across all chunks</p>
-                                <p>So that I can generate a holistic overview of the entire book</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The system groups and reconciles repeated or overlapping information (e.g., same character appearing in multiple chunks).</li>
-                                    <li>Conflicting or inconsistent data is flagged or noted.</li>
-                                    <li>Aggregated summaries are stored in a central data structure (e.g., "Global Theme Summary," "Character Profiles," etc.).</li>
-                                </ul>
-                            </div>
+                        <div class="analysis-section">
+                            <h3>Characters</h3>
+                            <div id="characters-list" class="analysis-content"></div>
                         </div>
                         
-                        <div class="user-story">
-                            <h3>User Story 7: Determining Overall Structure</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to derive the narrative or argument flow (e.g., exposition, climax, resolution) from the chunk-level data</p>
-                                <p>So that I can describe how the book's content is organized as a whole</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The system identifies major segments or transitions across chunks.</li>
-                                    <li>Structural elements (e.g., "Act I–III," "thesis → supporting arguments → conclusion") are clearly outlined.</li>
-                                    <li>The final structure outline is saved for inclusion in the final report.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h2>5. Interpretation Layer</h2>
-                        
-                        <div class="user-story">
-                            <h3>User Story 8: Integrating Contextual Metadata</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to combine the book's global analysis with author/historical metadata</p>
-                                <p>So that I can produce context-aware interpretations of themes and characters</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The system references the previously stored metadata.</li>
-                                    <li>The final interpretation includes context-based observations (e.g., "This event reflects the author's cultural background").</li>
-                                    <li>All references to context and text analysis are captured in a consolidated summary.</li>
-                                </ul>
-                            </div>
+                        <div class="analysis-section">
+                            <h3>Themes</h3>
+                            <div id="themes-list" class="analysis-content"></div>
                         </div>
                         
-                        <div class="user-story">
-                            <h3>User Story 9: Generating Multiple Perspectives (Optional)</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to offer alternative readings or critical lenses on the text</p>
-                                <p>So that I can provide a richer, more diverse set of interpretations</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>If enabled, the system prompts the local LLM for additional viewpoints (e.g., feminist, psychoanalytic, historical).</li>
-                                    <li>Each viewpoint is stored or appended to the final interpretive summary.</li>
-                                    <li>The user can disable or bypass this feature if multiple perspectives aren't desired.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h2>6. Final Reporting</h2>
-                        
-                        <div class="user-story">
-                            <h3>User Story 10: Creating a Comprehensive Summary</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to compile all analyses—plot overviews, character developments, themes, style findings, and contextual notes—into one cohesive document</p>
-                                <p>So that readers (or downstream systems) have a single, complete reference</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>The final report includes all major findings, structured in sections (e.g., "Plot Summary," "Characters," "Themes," "Style," "Contextual Analysis").</li>
-                                    <li>The document can be output in multiple formats (JSON, Markdown, HTML, etc.).</li>
-                                    <li>All references, quotes, and interpretations are clearly attributed to their respective sources or chunk analyses.</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="user-story">
-                            <h3>User Story 11: Automated Workflow Execution</h3>
-                            <div class="user-story-content">
-                                <p>As an automated literary analysis system</p>
-                                <p>I want to execute the entire pipeline (PDF ingestion → chunking → LLM analysis → synthesis → reporting) with minimal or no human intervention</p>
-                                <p>So that large sets of PDFs can be processed reliably at scale</p>
-                            </div>
-                            <div class="acceptance-criteria">
-                                <h4>Acceptance Criteria</h4>
-                                <ul>
-                                    <li>Triggering the pipeline (e.g., placing a file in a "to-analyze" folder) runs the entire analysis end-to-end.</li>
-                                    <li>The system handles errors or timeouts gracefully (logging, retries, or skipping problematic chunks).</li>
-                                    <li>A final, consolidated report is generated for each PDF without requiring user interaction mid-process.</li>
-                                </ul>
-                            </div>
+                        <div class="analysis-section">
+                            <h3>Table of Contents</h3>
+                            <div id="table-of-contents" class="analysis-content"></div>
                         </div>
                     </div>
                 </div>
@@ -646,6 +587,9 @@
         
         // Current book
         let currentBook = null;
+        
+        // Analysis polling interval
+        let analysisPollingInterval = null;
         
         // Toggle PDF visibility - REMOVED
         
@@ -666,7 +610,7 @@
             chatMessages.innerHTML = '';
             chatMessages.innerHTML = `
                 <div class="message system-message">
-                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook?.title || currentBook?.name || 'the book'}".</div>
+                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook && (currentBook.title || currentBook.name) || 'the book'}".</div>
                 </div>
             `;
         }
@@ -696,12 +640,314 @@
         
         // Update book structure view
         function updateBookStructure() {
-            const bookTitle = currentBook?.title || currentBook?.name || 'Unknown Book';
+            // Update the title
+            const bookTitle = currentBook && (currentBook.title || currentBook.name) || 'Unknown Book';
             document.getElementById('structure-book-title').textContent = bookTitle;
+            
+            // Get the latest analysis status
+            if (currentBook) {
+                checkAnalysisStatus(currentBook.name);
+            }
+        }
+        
+        // Analysis functions
+        
+        // Check the status of book analysis
+        async function checkAnalysisStatus(bookId) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/books/${bookId}/analysis`);
+                const data = await response.json();
+                
+                // Update the UI with the status
+                updateAnalysisStatusUI(data);
+                
+                return data;
+            } catch (error) {
+                console.error('Error checking analysis status:', error);
+                document.getElementById('analysis-status-message').textContent = 
+                    'Error checking analysis status. Please try again.';
+                return null;
+            }
+        }
+        
+        // Start book analysis
+        async function startBookAnalysis(bookId) {
+            try {
+                // Update UI state
+                document.getElementById('start-analysis-btn').disabled = true;
+                document.getElementById('analysis-status-message').textContent = 'Starting analysis...';
+                
+                // Show progress bar
+                document.getElementById('analysis-progress-container').style.display = 'block';
+                
+                // Send request to start analysis
+                const response = await fetch(`http://localhost:5000/api/books/${bookId}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        options: {
+                            concurrency: 1 // Use a single thread
+                        }
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Start polling for updates
+                    startPollingAnalysisStatus(bookId);
+                } else {
+                    document.getElementById('analysis-status-message').textContent = 
+                        `Failed to start analysis: ${data.error}`;
+                    document.getElementById('start-analysis-btn').disabled = false;
+                }
+            } catch (error) {
+                console.error('Error starting analysis:', error);
+                document.getElementById('analysis-status-message').textContent = 
+                    'Error starting analysis. Please try again.';
+                document.getElementById('start-analysis-btn').disabled = false;
+            }
+        }
+        
+        // Start polling for analysis status updates
+        function startPollingAnalysisStatus(bookId) {
+            // Clear any existing polling
+            if (analysisPollingInterval) {
+                clearInterval(analysisPollingInterval);
+            }
+            
+            // Set up polling at regular intervals
+            analysisPollingInterval = setInterval(async () => {
+                const status = await checkAnalysisStatus(bookId);
+                
+                // If analysis is completed or failed, stop polling
+                if (status && (status.status === 'completed' || status.status === 'failed')) {
+                    clearInterval(analysisPollingInterval);
+                    analysisPollingInterval = null;
+                    
+                    // Enable the refresh button
+                    document.getElementById('refresh-analysis-btn').style.display = 'block';
+                }
+            }, 5000); // Poll every 5 seconds
+        }
+        
+        // Update the analysis status UI
+        function updateAnalysisStatusUI(statusData) {
+            const statusMessage = document.getElementById('analysis-status-message');
+            const progressBar = document.getElementById('analysis-progress-bar');
+            const progressText = document.getElementById('analysis-progress-text');
+            const progressContainer = document.getElementById('analysis-progress-container');
+            const startButton = document.getElementById('start-analysis-btn');
+            const refreshButton = document.getElementById('refresh-analysis-btn');
+            const resultsSection = document.getElementById('analysis-results');
+            
+            // Update status message
+            if (statusData.status === 'not_found') {
+                statusMessage.textContent = 'Book not processed for analysis.';
+                startButton.disabled = false;
+                progressContainer.style.display = 'none';
+                refreshButton.style.display = 'none';
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            if (statusData.status === 'pending') {
+                statusMessage.textContent = 'Analysis pending. Click Start Analysis to begin.';
+                startButton.disabled = false;
+                progressContainer.style.display = 'none';
+                refreshButton.style.display = 'none';
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            if (statusData.status === 'in-progress') {
+                statusMessage.textContent = 'Analysis in progress...';
+                startButton.disabled = true;
+                progressContainer.style.display = 'block';
+                refreshButton.style.display = 'none';
+                
+                // Update progress bar
+                if (statusData.progress) {
+                    const percentage = statusData.progress.percentage || 0;
+                    progressBar.style.width = `${percentage}%`;
+                    progressText.textContent = `${percentage}% (${statusData.progress.current}/${statusData.progress.total} chunks)`;
+                }
+                
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            if (statusData.status === 'completed') {
+                statusMessage.textContent = 'Analysis completed!';
+                startButton.disabled = true;
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '100%';
+                progressText.textContent = '100% - Complete';
+                refreshButton.style.display = 'block';
+                
+                // Display results
+                displayAnalysisResults(statusData);
+                resultsSection.style.display = 'block';
+                return;
+            }
+            
+            if (statusData.status === 'failed') {
+                statusMessage.textContent = `Analysis failed: ${statusData.error || 'Unknown error'}`;
+                startButton.disabled = false;
+                progressContainer.style.display = 'none';
+                refreshButton.style.display = 'none';
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            // Default case
+            statusMessage.textContent = `Analysis status: ${statusData.status}`;
+        }
+        
+        // Display analysis results
+        function displayAnalysisResults(data) {
+            if (!data.analysis) return;
+            
+            const analysis = data.analysis;
+            
+            // Update plot summary
+            const plotSummary = document.getElementById('plot-summary');
+            plotSummary.innerHTML = analysis.plotSummary || 'No plot summary available.';
+            
+            // Update narrative structure
+            if (analysis.structure) {
+                document.getElementById('structure-type').innerHTML = `
+                    <strong>Type:</strong> ${analysis.structure.type || 'Not determined'}
+                `;
+                
+                document.getElementById('structure-arc').innerHTML = `
+                    <strong>Arc:</strong> ${analysis.structure.arc || 'Not determined'}
+                `;
+                
+                // Render structure segments
+                const segmentsContainer = document.getElementById('structure-segments');
+                segmentsContainer.innerHTML = '<strong>Segments:</strong>';
+                
+                if (analysis.structure.segments && analysis.structure.segments.length > 0) {
+                    const segmentsList = document.createElement('div');
+                    segmentsList.className = 'segments-list';
+                    
+                    analysis.structure.segments.forEach(segment => {
+                        const segmentCard = document.createElement('div');
+                        segmentCard.className = 'segment-card';
+                        
+                        segmentCard.innerHTML = `
+                            <div class="segment-name">${segment.name || 'Unnamed segment'}</div>
+                            <div class="segment-location">${segment.approximate_location || ''}</div>
+                            <div class="segment-description">${segment.description || 'No description available'}</div>
+                        `;
+                        
+                        segmentsList.appendChild(segmentCard);
+                    });
+                    
+                    segmentsContainer.appendChild(segmentsList);
+                } else {
+                    segmentsContainer.innerHTML += ' No segments identified.';
+                }
+            } else {
+                document.getElementById('narrative-structure').innerHTML = 'No narrative structure analysis available.';
+            }
+            
+            // Update characters list
+            const charactersContainer = document.getElementById('characters-list');
+            charactersContainer.innerHTML = '';
+            
+            if (analysis.mainCharacters && analysis.mainCharacters.length > 0) {
+                const charSection = document.createElement('div');
+                charSection.innerHTML = '<h4>Main Characters</h4>';
+                
+                analysis.mainCharacters.forEach(char => {
+                    const charCard = document.createElement('div');
+                    charCard.className = 'character-card';
+                    
+                    charCard.innerHTML = `
+                        <div class="character-name">${char.name}</div>
+                        <div class="character-description">${char.description || ''}</div>
+                        <div class="character-meta">
+                            ${char.role ? `<div><strong>Role:</strong> ${char.role}</div>` : ''}
+                            ${char.appearances ? `<div><strong>Appearances:</strong> ${char.appearances}</div>` : ''}
+                        </div>
+                    `;
+                    
+                    charSection.appendChild(charCard);
+                });
+                
+                charactersContainer.appendChild(charSection);
+            } else {
+                charactersContainer.innerHTML = 'No character information available.';
+            }
+            
+            // Update themes list
+            const themesContainer = document.getElementById('themes-list');
+            themesContainer.innerHTML = '';
+            
+            if (analysis.themes && analysis.themes.length > 0) {
+                analysis.themes.slice(0, 10).forEach(theme => {
+                    const themeCard = document.createElement('div');
+                    themeCard.className = 'theme-card';
+                    
+                    themeCard.innerHTML = `
+                        <div class="theme-name">${theme.name}</div>
+                        <div class="theme-description">${theme.description || ''}</div>
+                        ${theme.occurrences ? `<div class="theme-meta">Occurrences: ${theme.occurrences}</div>` : ''}
+                    `;
+                    
+                    themesContainer.appendChild(themeCard);
+                });
+            } else {
+                themesContainer.innerHTML = 'No themes identified.';
+            }
+            
+            // Update table of contents
+            const tocContainer = document.getElementById('table-of-contents');
+            tocContainer.innerHTML = '';
+            
+            if (data.bookInfo && data.bookInfo.tableOfContents && data.bookInfo.tableOfContents.length > 0) {
+                const tocList = document.createElement('div');
+                tocList.className = 'toc-list';
+                
+                data.bookInfo.tableOfContents.forEach(tocEntry => {
+                    const entry = document.createElement('div');
+                    entry.className = 'toc-entry';
+                    
+                    entry.innerHTML = `
+                        <span class="toc-title">${tocEntry.title}</span>
+                        <span class="toc-page">Page ${tocEntry.page}</span>
+                    `;
+                    
+                    tocList.appendChild(entry);
+                });
+                
+                tocContainer.appendChild(tocList);
+            } else {
+                tocContainer.innerHTML = 'No table of contents found.';
+            }
         }
         
         // Book selector
         const bookSelect = document.getElementById('book-select');
+        
+        // Event listeners for Analysis buttons
+        document.getElementById('start-analysis-btn').addEventListener('click', function() {
+            if (currentBook) {
+                startBookAnalysis(currentBook.name);
+            } else {
+                alert('Please select a book first');
+            }
+        });
+        
+        document.getElementById('refresh-analysis-btn').addEventListener('click', function() {
+            if (currentBook) {
+                checkAnalysisStatus(currentBook.name);
+            }
+        });
         
         // Fetch available books
         async function fetchBooks() {
@@ -782,6 +1028,12 @@
                     
                     // Clear conversation
                     clearConversation();
+                    
+                    // Clear any existing analysis polling
+                    if (analysisPollingInterval) {
+                        clearInterval(analysisPollingInterval);
+                        analysisPollingInterval = null;
+                    }
                 } else {
                     alert(`Failed to change book: ${data.error}`);
                 }
@@ -806,7 +1058,7 @@
         // Book select change event
         bookSelect.addEventListener('change', function() {
             const selectedBook = this.value;
-            if (selectedBook && selectedBook !== currentBook?.name) {
+            if (selectedBook && selectedBook !== (currentBook && currentBook.name)) {
                 changeBook(selectedBook);
             }
         });
@@ -817,8 +1069,30 @@
                 hljs.highlightBlock(block);
             });
             
+            // Tab switching functionality
+            const chatTab = document.getElementById('chat-tab');
+            const structureTab = document.getElementById('structure-tab');
+            const chatContent = document.getElementById('chat-content');
+            const structureContent = document.getElementById('structure-content');
+            
+            chatTab.addEventListener('click', function() {
+                chatTab.classList.add('active');
+                structureTab.classList.remove('active');
+                chatContent.classList.add('active');
+                structureContent.classList.remove('active');
+            });
+            
+            structureTab.addEventListener('click', function() {
+                structureTab.classList.add('active');
+                chatTab.classList.remove('active');
+                structureContent.classList.add('active');
+                chatContent.classList.remove('active');
+            });
+            
             // Fetch available books
             fetchBooks();
+            
+            // ... other existing code ...
         });
 
         // Function to safely render markdown with XSS protection

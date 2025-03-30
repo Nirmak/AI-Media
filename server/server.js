@@ -4,10 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const { exec } = require('child_process');
+const logger = require('./logger'); // Import the logger
 require('dotenv').config();
 
+// Import our new services
+const bookService = require('./services/bookService');
+const { TextChunk, ChunkAnalysis, BookAnalysis } = require('./models');
+const { chunkText, extractTableOfContents } = require('./utils/textProcessor');
+
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const DOCS_DIR = path.resolve(__dirname, '../public/docs');
 
 // Find first available PDF in docs folder
@@ -158,6 +164,20 @@ const loadPdf = async (pdfPath) => {
       console.log(`PDF loaded successfully: ${currentPdfName}`);
       console.log(`PDF text length: ${pdfText.length} characters`);
       console.log(`PDF title detected: ${pdfTitle}`);
+      
+      // Also load the book into the book analysis system
+      const bookId = currentPdfName;
+      const fullBookPath = fullPath;
+      
+      // Asynchronously process the book for analysis
+      bookService.loadAndProcessBook(fullBookPath, bookId)
+        .then(result => {
+          console.log(`Book processing result: ${result.message}`);
+        })
+        .catch(err => {
+          console.error(`Error processing book for analysis: ${err.message}`);
+        });
+      
       resolve(stdout);
     });
   });
@@ -199,8 +219,11 @@ const extractTitleForBook = async (filename) => {
 // Endpoint to list available PDFs
 app.get('/api/books', async (req, res) => {
   try {
+    console.log("GET /api/books called");
     const files = fs.readdirSync(DOCS_DIR);
+    console.log("Files in DOCS_DIR:", files);
     const pdfFiles = files.filter(file => file.toLowerCase().endsWith('.pdf'));
+    console.log("PDF files found:", pdfFiles);
     
     // Get titles for all books (in parallel)
     const bookPromises = pdfFiles.map(async file => {
@@ -235,6 +258,7 @@ app.get('/api/books', async (req, res) => {
     });
     
     const books = await Promise.all(bookPromises);
+    console.log("Sending books response:", books);
     
     res.json({ books });
   } catch (error) {
@@ -336,6 +360,9 @@ AI (using Markdown formatting):`;
     // Extract the AI's response and process it
     let answer = response.data.response;
     
+    // Log the LLM response using our real-time logger
+    logger.llm('Chat', answer);
+    
     // Process the answer to remove thinking parts
     answer = extractFinalAnswer(answer);
     
@@ -346,14 +373,131 @@ AI (using Markdown formatting):`;
   }
 });
 
+// NEW API ENDPOINTS FOR BOOK ANALYSIS
+
+// Start book analysis
+app.post('/api/books/:bookId/analyze', async (req, res) => {
+  try {
+    const { bookId } = req.params;
+    const options = req.body.options || {};
+    
+    // Set a timeout to respond while analysis continues in background
+    const analysisPromise = bookService.analyzeBook(bookId, options);
+    
+    // Return status immediately
+    res.json({
+      success: true,
+      message: `Analysis for book ${bookId} started`,
+      bookId,
+      status: 'started'
+    });
+    
+    // Continue with analysis without blocking the response
+    await analysisPromise;
+    
+  } catch (error) {
+    console.error(`Error starting analysis for book ${req.params.bookId}:`, error);
+    res.status(500).json({ 
+      success: false,
+      error: `Failed to start analysis: ${error.message}` 
+    });
+  }
+});
+
+// Get analysis status or results
+app.get('/api/books/:bookId/analysis', (req, res) => {
+  try {
+    const { bookId } = req.params;
+    const results = bookService.getAnalysisResults(bookId);
+    
+    if (!results.success && results.status === 'not_found') {
+      return res.status(404).json(results);
+    }
+    
+    res.json(results);
+  } catch (error) {
+    console.error(`Error getting analysis results for book ${req.params.bookId}:`, error);
+    res.status(500).json({ 
+      success: false,
+      error: `Failed to get analysis results: ${error.message}` 
+    });
+  }
+});
+
+// Get book structure
+app.get('/api/books/:bookId/structure', async (req, res) => {
+  try {
+    const { bookId } = req.params;
+    const results = bookService.getAnalysisResults(bookId);
+    
+    if (!results.success && results.status === 'not_found') {
+      return res.status(404).json({
+        success: false,
+        message: `Book ${bookId} not found`,
+        status: 'not_found'
+      });
+    }
+    
+    // If analysis is not complete, return what we have
+    const structure = {
+      bookInfo: results.bookInfo || { title: bookId },
+      analysisStatus: results.status,
+      structure: results.analysis && results.analysis.structure ? results.analysis.structure : null,
+      tableOfContents: results.bookInfo && results.bookInfo.tableOfContents ? results.bookInfo.tableOfContents : null
+    };
+    
+    // If we have a complete analysis, include details
+    if (results.status === 'completed') {
+      structure.plotSummary = results.analysis && results.analysis.plotSummary ? results.analysis.plotSummary : null;
+      structure.mainCharacters = results.analysis && results.analysis.mainCharacters ? results.analysis.mainCharacters : null;
+      structure.themes = results.analysis && results.analysis.themes ? results.analysis.themes : null;
+    }
+    
+    res.json({
+      success: true,
+      structure
+    });
+  } catch (error) {
+    console.error(`Error getting book structure for ${req.params.bookId}:`, error);
+    res.status(500).json({ 
+      success: false,
+      error: `Failed to get book structure: ${error.message}` 
+    });
+  }
+});
+
+// UPDATE ENDPOINT FOR LOGS
+app.get('/api/logs', (req, res) => {
+  const { limit = 20, type } = req.query;
+  
+  // Use the recentLogs from the logger module
+  let filteredLogs = logger.getRecentLogs();
+  if (type) {
+    filteredLogs = filteredLogs.filter(log => log.type === type.toUpperCase());
+  }
+  
+  // Return most recent logs, limited by the requested amount
+  res.json({
+    logs: filteredLogs.slice(-Math.min(parseInt(limit), 100))
+  });
+});
+
 // Start server
 app.listen(PORT, async () => {
   try {
+    console.log(`Starting server on port ${PORT}...`);
     // Find and load the first available PDF
+    console.log(`Looking for PDFs in ${DOCS_DIR}...`);
     PDF_PATH = findFirstPdf();
+    console.log(`Found PDF: ${PDF_PATH}`);
     await loadPdf(PDF_PATH);
     console.log(`Server running on port ${PORT}`);
   } catch (error) {
     console.error('Failed to start server properly:', error);
+  }
+}).on('error', (error) => {
+  console.error('Server failed to start:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please use a different port.`);
   }
 }); 
