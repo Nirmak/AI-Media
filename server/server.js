@@ -313,7 +313,7 @@ app.post('/api/chat', async (req, res) => {
     logger.info(`Chat question received: "${question}"`);
     
     // Create a context for the LLM that includes analysis results
-    let prompt = `<｜User｜>\nYou are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". \nIf you need to think through your answer, place your thinking inside <think> </think> tags.\nThis thinking will be hidden from the user, so make sure your final answer outside these tags is complete.\n\nIMPORTANT: You have a memory of our conversation. Refer to it when relevant and don't repeat information unnecessarily.\n\nFORMAT YOUR RESPONSE USING MARKDOWN:\n- Use **bold** for emphasis\n- Use *italics* for subtle emphasis\n- Use ## headings to organize longer answers\n- Use numbered lists (1. 2. 3.) for steps or sequences\n- Use bullet points for lists of items\n- Use \`code\` for technical terms\n- Use \`\`\`code blocks\`\`\` for examples\n- Use > for quoting text from the document\n\n`;
+    let prompt = `\nYou are an AI assistant engaging in a conversation about a PDF document titled "${pdfTitle}". \nIf you need to think through your answer, place your thinking inside <think> </think> tags.\nThis thinking will be hidden from the user, so make sure your final answer outside these tags is complete.\n\nIMPORTANT: You have a memory of our conversation. Refer to it when relevant and don't repeat information unnecessarily.\n\nFORMAT YOUR RESPONSE USING MARKDOWN:\n- Use **bold** for emphasis\n- Use *italics* for subtle emphasis\n- Use ## headings to organize longer answers\n- Use numbered lists (1. 2. 3.) for steps or sequences\n- Use bullet points for lists of items\n- Use \`code\` for technical terms\n- Use \`\`\`code blocks\`\`\` for examples\n- Use > for quoting text from the document\n\n`;
     
     // Add the full text of the book
     prompt += `Here's the full content of the document "${pdfTitle}":\n\n${pdfText}\n\n`;
@@ -348,12 +348,22 @@ app.post('/api/chat', async (req, res) => {
       });
       
       // Process the streaming response
+      let buffer = '';
       response.data.on('data', (chunk) => {
         try {
-          const text = chunk.toString();
-          const lines = text.split('\n').filter(line => line.trim());
+          // Add new chunk to buffer
+          buffer += chunk.toString();
           
-          for (const line of lines) {
+          // Process complete JSON objects
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            // Extract a complete line
+            const line = buffer.substring(0, newlineIndex).trim();
+            buffer = buffer.substring(newlineIndex + 1);
+            
+            // Skip empty lines
+            if (!line) continue;
+            
             try {
               const data = JSON.parse(line);
               
@@ -377,7 +387,8 @@ app.post('/api/chat', async (req, res) => {
                 }
               }
             } catch (parseError) {
-              console.error('Error parsing streaming JSON:', parseError);
+              // Skip invalid JSON (it might be incomplete)
+              logger.info(`Skipping invalid JSON: ${line}`);
             }
           }
         } catch (chunkError) {
