@@ -327,6 +327,56 @@
             font-size: 18px;
             color: #333;
         }
+        
+        /* Book Structure Analysis Styling */
+        .analysis-section {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .analysis-section h2 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        
+        .user-story {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .user-story h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .user-story-content {
+            font-style: italic;
+            margin: 10px 0;
+            color: #555;
+        }
+        
+        .acceptance-criteria {
+            margin-top: 15px;
+        }
+        
+        .acceptance-criteria h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #444;
+        }
+        
+        .acceptance-criteria ul {
+            margin-left: 20px;
+            list-style-type: disc;
+        }
+        
+        .acceptance-criteria li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -368,8 +418,218 @@
             </div>
             <div id="structure-content" class="tab-content">
                 <div class="book-structure">
-                    <h2>Book Structure</h2>
-                    <h3 id="structure-book-title">Book Title</h3>
+                    <h2>Book Structure Analysis for <span id="structure-book-title">Book Title</span></h2>
+                    
+                    <div class="analysis-section">
+                        <h2>1. Intake and Preparation</h2>
+                        
+                        <div class="user-story">
+                            <h3>User Story 1: Ingesting PDF Text</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to open and read the entire text from a local PDF file</p>
+                                <p>So that I can use the complete content as input for further analysis</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The system automatically detects and processes the PDF file.</li>
+                                    <li>The system extracts text in a structured format (e.g., plain text, segmented text, etc.).</li>
+                                    <li>The full text is stored or queued for later steps in the pipeline.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="user-story">
+                            <h3>User Story 2: Segmenting Text</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to divide the extracted PDF text into smaller "chunks"</p>
+                                <p>So that the local LLM can process it without exceeding its context limits</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The text is split at logical intervals (e.g., by paragraph, page, or token size).</li>
+                                    <li>Each chunk is labeled or indexed to maintain its position in the original text.</li>
+                                    <li>All chunks are stored and accessible for subsequent analysis steps.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h2>2. Contextual Data Retrieval</h2>
+                        
+                        <div class="user-story">
+                            <h3>User Story 3: Gathering Contextual Metadata</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to retrieve metadata (e.g., author info, publication date, historical context) from available local or external sources</p>
+                                <p>So that I can incorporate relevant contextual details during interpretation</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>Metadata sources are identified (local knowledge base, structured files, etc.).</li>
+                                    <li>Metadata is fetched automatically without user input.</li>
+                                    <li>The metadata is stored in a standardized structure for use alongside text analysis results.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h2>3. Textual Analysis</h2>
+                        
+                        <div class="user-story">
+                            <h3>User Story 4: Extracting Content Features</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to process each text chunk with the local LLM</p>
+                                <p>So that I can extract features like key events, characters, themes, and notable stylistic elements</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>Each chunk is passed to the LLM with appropriate instructions.</li>
+                                    <li>The LLM's output is captured in a structured, machine-readable format (e.g., JSON).</li>
+                                    <li>The extracted features are stored in a database or a data structure indexed by chunk ID.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="user-story">
+                            <h3>User Story 5: Logging Intermediate Results</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to keep track of the LLM outputs for each chunk</p>
+                                <p>So that I can review intermediate findings or troubleshoot errors if needed</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The system maintains logs or a record of each chunk's analysis results.</li>
+                                    <li>Each log entry includes the chunk ID and the extracted data.</li>
+                                    <li>Logs can be accessed for auditing or debugging after the analysis is complete.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h2>4. Aggregation and Synthesis</h2>
+                        
+                        <div class="user-story">
+                            <h3>User Story 6: Combining Local Analyses</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to merge the extracted details (themes, characters, style) across all chunks</p>
+                                <p>So that I can generate a holistic overview of the entire book</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The system groups and reconciles repeated or overlapping information (e.g., same character appearing in multiple chunks).</li>
+                                    <li>Conflicting or inconsistent data is flagged or noted.</li>
+                                    <li>Aggregated summaries are stored in a central data structure (e.g., "Global Theme Summary," "Character Profiles," etc.).</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="user-story">
+                            <h3>User Story 7: Determining Overall Structure</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to derive the narrative or argument flow (e.g., exposition, climax, resolution) from the chunk-level data</p>
+                                <p>So that I can describe how the book's content is organized as a whole</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The system identifies major segments or transitions across chunks.</li>
+                                    <li>Structural elements (e.g., "Act I–III," "thesis → supporting arguments → conclusion") are clearly outlined.</li>
+                                    <li>The final structure outline is saved for inclusion in the final report.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h2>5. Interpretation Layer</h2>
+                        
+                        <div class="user-story">
+                            <h3>User Story 8: Integrating Contextual Metadata</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to combine the book's global analysis with author/historical metadata</p>
+                                <p>So that I can produce context-aware interpretations of themes and characters</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The system references the previously stored metadata.</li>
+                                    <li>The final interpretation includes context-based observations (e.g., "This event reflects the author's cultural background").</li>
+                                    <li>All references to context and text analysis are captured in a consolidated summary.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="user-story">
+                            <h3>User Story 9: Generating Multiple Perspectives (Optional)</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to offer alternative readings or critical lenses on the text</p>
+                                <p>So that I can provide a richer, more diverse set of interpretations</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>If enabled, the system prompts the local LLM for additional viewpoints (e.g., feminist, psychoanalytic, historical).</li>
+                                    <li>Each viewpoint is stored or appended to the final interpretive summary.</li>
+                                    <li>The user can disable or bypass this feature if multiple perspectives aren't desired.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h2>6. Final Reporting</h2>
+                        
+                        <div class="user-story">
+                            <h3>User Story 10: Creating a Comprehensive Summary</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to compile all analyses—plot overviews, character developments, themes, style findings, and contextual notes—into one cohesive document</p>
+                                <p>So that readers (or downstream systems) have a single, complete reference</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>The final report includes all major findings, structured in sections (e.g., "Plot Summary," "Characters," "Themes," "Style," "Contextual Analysis").</li>
+                                    <li>The document can be output in multiple formats (JSON, Markdown, HTML, etc.).</li>
+                                    <li>All references, quotes, and interpretations are clearly attributed to their respective sources or chunk analyses.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="user-story">
+                            <h3>User Story 11: Automated Workflow Execution</h3>
+                            <div class="user-story-content">
+                                <p>As an automated literary analysis system</p>
+                                <p>I want to execute the entire pipeline (PDF ingestion → chunking → LLM analysis → synthesis → reporting) with minimal or no human intervention</p>
+                                <p>So that large sets of PDFs can be processed reliably at scale</p>
+                            </div>
+                            <div class="acceptance-criteria">
+                                <h4>Acceptance Criteria</h4>
+                                <ul>
+                                    <li>Triggering the pipeline (e.g., placing a file in a "to-analyze" folder) runs the entire analysis end-to-end.</li>
+                                    <li>The system handles errors or timeouts gracefully (logging, retries, or skipping problematic chunks).</li>
+                                    <li>A final, consolidated report is generated for each PDF without requiring user interaction mid-process.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
