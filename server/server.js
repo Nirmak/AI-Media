@@ -301,6 +301,35 @@ app.post('/api/books/change', async (req, res) => {
   }
 });
 
+// Add this function before the chat endpoint
+async function fixJsonWithLLM(jsonString) {
+  try {
+    const prompt = `You are a specialized JSON fixing agent. Your task is to fix the following JSON string that has parsing errors. Return ONLY the fixed JSON string, nothing else. If you cannot fix it, return "ERROR". Here's the problematic JSON:
+
+${jsonString}
+
+Remember: Return ONLY the fixed JSON string or "ERROR" if it cannot be fixed.`;
+
+    const response = await axios.post(OLLAMA_API_URL, {
+      model: "deepseek-r1:7b",
+      prompt: prompt,
+      stream: false
+    });
+
+    const fixedJson = response.data.response.trim();
+    if (fixedJson === "ERROR") {
+      throw new Error("LLM could not fix the JSON");
+    }
+    
+    // Try to parse the fixed JSON to validate it
+    JSON.parse(fixedJson);
+    return fixedJson;
+  } catch (error) {
+    console.error('Error in JSON fixing:', error);
+    throw error;
+  }
+}
+
 // Chat endpoint
 app.get('/api/chat', async (req, res) => {
   try {
@@ -353,7 +382,7 @@ app.get('/api/chat', async (req, res) => {
       let fullResponseBuffer = '';
       let isThinking = false;
       
-      response.data.on('data', (chunk) => {
+      response.data.on('data', async (chunk) => {
         try {
           // Add new chunk to buffer
           buffer += chunk.toString();
@@ -416,8 +445,20 @@ app.get('/api/chat', async (req, res) => {
               }
             } catch (parseError) {
               console.error('Error parsing JSON:', parseError);
-              // Don't end the response here, just skip this chunk
-              continue;
+              // Try to fix the JSON using the LLM
+              try {
+                const fixedJson = await fixJsonWithLLM(line);
+                const data = JSON.parse(fixedJson);
+                // Process the fixed data
+                if (data.response) {
+                  fullResponseBuffer += data.response;
+                  // ... rest of the response processing ...
+                }
+              } catch (fixError) {
+                console.error('Failed to fix JSON:', fixError);
+                // Continue with the next chunk if we can't fix this one
+                continue;
+              }
             }
           }
         } catch (chunkError) {
