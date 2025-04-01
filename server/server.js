@@ -35,7 +35,7 @@ const findFirstPdf = () => {
 
 // Default PDF path - will be set during initialization
 let PDF_PATH = '';
-const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api/generate';
+const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
 
 // Middleware
 app.use(cors());
@@ -302,9 +302,17 @@ app.post('/api/books/change', async (req, res) => {
 });
 
 // Chat endpoint
-app.post('/api/chat', async (req, res) => {
+app.get('/api/chat', async (req, res) => {
   try {
-    const { question, history = [] } = req.body;
+    const { question } = req.query;
+    
+    if (!question) {
+      throw new Error('Question is required');
+    }
+    
+    if (!pdfText) {
+      throw new Error('No book is currently loaded. Please select a book first.');
+    }
     
     // Get the book analysis if available
     const bookAnalysis = bookService.getAnalysisResults(currentPdfName);
@@ -317,14 +325,6 @@ app.post('/api/chat', async (req, res) => {
     
     // Add the full text of the book
     prompt += `Here's the full content of the document "${pdfTitle}":\n\n${pdfText}\n\n`;
-    
-    // Add conversation history
-    if (history.length > 0) {
-      prompt += `Our conversation so far:\n`;
-      history.forEach(exchange => {
-        prompt += `Human: ${exchange.question}\n\nAI (using Markdown formatting): ${exchange.answer}\n\n`;
-      });
-    }
     
     // Add current question
     prompt += `Human: ${question}\n\n`;
@@ -344,11 +344,15 @@ app.post('/api/chat', async (req, res) => {
         prompt: prompt,
         stream: true
       }, {
-        responseType: 'stream'
+        responseType: 'stream',
+        timeout: 30000 // 30 second timeout
       });
       
       // Process the streaming response
       let buffer = '';
+      let fullResponseBuffer = '';
+      let isThinking = false;
+      
       response.data.on('data', (chunk) => {
         try {
           // Add new chunk to buffer
@@ -368,15 +372,39 @@ app.post('/api/chat', async (req, res) => {
               const data = JSON.parse(line);
               
               if (data.response) {
-                // Remove thinking parts on-the-fly
-                const processedChunk = extractFinalAnswer(data.response);
-                fullResponse += data.response;
+                fullResponseBuffer += data.response;
                 
-                // Send the chunk to the client
-                res.write(`data: ${JSON.stringify({ chunk: processedChunk })}\n\n`);
+                // Check if we're in a thinking block
+                if (fullResponseBuffer.includes('<think>')) {
+                  isThinking = true;
+                }
+                
+                // If we're in a thinking block, wait until it ends
+                if (isThinking) {
+                  if (fullResponseBuffer.includes('</think>')) {
+                    isThinking = false;
+                    // Remove the thinking block
+                    fullResponseBuffer = fullResponseBuffer.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+                  }
+                } else {
+                  // If we're not in a thinking block, stream the response
+                  const chunk = fullResponseBuffer;
+                  fullResponseBuffer = '';
+                  fullResponse += chunk;
+                  res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+                }
                 
                 // If this is the final chunk, also send the 'done' event
                 if (data.done) {
+                  // Make sure to send any remaining non-thinking content
+                  if (fullResponseBuffer) {
+                    const finalChunk = fullResponseBuffer.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+                    if (finalChunk) {
+                      fullResponse += finalChunk;
+                      res.write(`data: ${JSON.stringify({ chunk: finalChunk })}\n\n`);
+                    }
+                  }
+                  
                   res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
                   
                   // Log the full response once completed
@@ -387,43 +415,50 @@ app.post('/api/chat', async (req, res) => {
                 }
               }
             } catch (parseError) {
-              // Skip invalid JSON (it might be incomplete)
-              logger.info(`Skipping invalid JSON: ${line}`);
+              console.error('Error parsing JSON:', parseError);
+              // Don't end the response here, just skip this chunk
+              continue;
             }
           }
         } catch (chunkError) {
           console.error('Error processing chunk:', chunkError);
+          if (!res.writableEnded) {
+            res.write(`data: ${JSON.stringify({ error: 'Error processing response chunk' })}\n\n`);
+            res.end();
+          }
         }
       });
       
       // Handle errors in the stream
       response.data.on('error', (error) => {
         console.error('Stream error:', error);
-        res.write(`data: ${JSON.stringify({ error: 'Stream error occurred' })}\n\n`);
-        res.end();
+        if (!res.writableEnded) {
+          res.write(`data: ${JSON.stringify({ error: 'Stream error occurred' })}\n\n`);
+          res.end();
+        }
       });
       
       // Handle end of stream
       response.data.on('end', () => {
-        // If we haven't ended the response yet (e.g., if 'done' was never received)
-        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-        res.end();
+        if (!res.writableEnded) {
+          res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+          res.end();
+        }
       });
       
     } catch (error) {
-      // Handle request errors
       console.error('Error in streaming request:', error);
-      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-      res.end();
+      if (!res.writableEnded) {
+        res.write(`data: ${JSON.stringify({ error: `Failed to get response: ${error.message}` })}\n\n`);
+        res.end();
+      }
     }
     
   } catch (error) {
     console.error('Error in chat:', error);
-    // If we haven't set up SSE headers yet, send a regular error response
     if (!res.headersSent) {
       res.status(500).json({ error: 'Failed to generate response', details: error.message });
-    } else {
-      // Otherwise, send the error as an SSE event
+    } else if (!res.writableEnded) {
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       res.end();
     }
