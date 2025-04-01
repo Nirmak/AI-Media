@@ -1198,190 +1198,117 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function askQuestion() {
+        // Function to handle asking questions
+        async function askQuestion() {
             const questionInput = document.getElementById('question-input');
             const question = questionInput.value.trim();
+            
             if (!question) return;
             
-            // Add user question to chat
-            addMessage(question, 'user');
+            // Disable input while processing
             questionInput.value = '';
+            questionInput.disabled = true;
+            document.querySelector('.chat-input button').disabled = true;
             
-            // Show loading message
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'message ai-message loading';
-            loadingDiv.innerHTML = `<div class="message-content"><em>Thinking...</em></div>`;
-            document.getElementById('chat-messages').appendChild(loadingDiv);
+            // Add user message
+            const chatMessages = document.getElementById('chat-messages');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.innerHTML = `<div class="message-content">${question}</div>`;
+            chatMessages.appendChild(userMessageDiv);
             
-            // Send question to the server with conversation history
-            fetch('http://localhost:5000/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    question,
-                    history: conversationHistory.slice(-6) // Send last 6 messages (3 exchanges)
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Remove loading message
-                loadingDiv.remove();
-                
-                // Add AI response to chat with markdown
-                addMessage(data.answer, 'ai');
-            })
-            .catch(error => {
-                // Remove loading message
-                loadingDiv.remove();
-                
-                // Show error message
-                addMessage('**Error:** Failed to get response. Please try again.', 'ai');
-                console.error('Error:', error);
-            });
-        }
-
-        // Allow pressing Enter to submit
-        document.getElementById('question-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                askQuestion();
-            }
-        });
-
-        // Send question to server
-        async function sendQuestion(question) {
-            const userMessage = document.createElement('div');
-            userMessage.className = 'message user-message';
-            userMessage.innerHTML = `<div class="message-content">${question}</div>`;
-            chatMessages.appendChild(userMessage);
+            // Add AI message container with loading indicator
+            const aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message ai-message';
+            aiMessageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>
+                </div>
+            `;
+            chatMessages.appendChild(aiMessageDiv);
             
-            // Create a loading message
-            const aiMessage = document.createElement('div');
-            aiMessage.className = 'message ai-message';
-            aiMessage.innerHTML = `<div class="message-content"><div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>`;
-            chatMessages.appendChild(aiMessage);
-            
+            // Scroll to bottom
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
-            // Disable input during processing
-            questionInput.disabled = true;
-            sendButton.disabled = true;
-            
             try {
-                // Get conversation history
-                const history = [];
-                const messageElements = document.querySelectorAll('.message');
-                for (let i = 0; i < messageElements.length - 2; i += 2) {
-                    const userMsg = messageElements[i];
-                    const aiMsg = messageElements[i + 1];
-                    if (userMsg && aiMsg) {
-                        history.push({
-                            question: userMsg.querySelector('.message-content').innerText,
-                            answer: aiMsg.querySelector('.message-content').innerText
-                        });
+                // Create EventSource for streaming response
+                const eventSource = new EventSource(`http://localhost:5000/api/chat?question=${encodeURIComponent(question)}`);
+                let aiResponse = '';
+                let errorOccurred = false;
+                
+                // Set up a timeout
+                const timeout = setTimeout(() => {
+                    eventSource.close();
+                    if (!aiResponse) {
+                        aiMessageDiv.innerHTML = '<div class="message-content error">Response timeout. Please try again.</div>';
                     }
-                }
+                }, 30000); // 30 second timeout
                 
-                // Create EventSource for SSE
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ question, history })
-                });
-                
-                // If we got a regular JSON response (non-streaming)
-                if (response.headers.get('Content-Type').includes('application/json')) {
-                    const data = await response.json();
-                    
-                    // Update AI message with answer
-                    aiMessage.innerHTML = `<div class="message-content">${marked.parse(data.answer)}</div>`;
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                    
-                    // Highlight code blocks
-                    document.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightBlock(block);
-                    });
-                } else {
-                    // Streaming response
-                    // Clear loading message
-                    let responseText = '';
-                    aiMessage.innerHTML = `<div class="message-content"></div>`;
-                    const contentDiv = aiMessage.querySelector('.message-content');
-                    
-                    // Set up event source for streaming
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    
-                    while (true) {
-                        const { value, done } = await reader.read();
-                        if (done) break;
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
                         
-                        const text = decoder.decode(value);
-                        const eventLines = text.split('\n\n');
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
                         
-                        for (const eventLine of eventLines) {
-                            if (!eventLine.trim() || !eventLine.startsWith('data:')) continue;
+                        if (data.chunk) {
+                            aiResponse += data.chunk;
+                            // Convert markdown to HTML on the fly
+                            aiMessageDiv.innerHTML = `<div class="message-content">${marked.parse(aiResponse)}</div>`;
+                            // Scroll to bottom
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                        
+                        if (data.done) {
+                            clearTimeout(timeout);
+                            eventSource.close();
                             
-                            try {
-                                const eventData = JSON.parse(eventLine.substring(5).trim());
-                                
-                                // Handle errors
-                                if (eventData.error) {
-                                    contentDiv.innerHTML = `<div class="error">Error: ${eventData.error}</div>`;
-                                    break;
-                                }
-                                
-                                // Handle chunks
-                                if (eventData.chunk) {
-                                    responseText += eventData.chunk;
-                                    contentDiv.innerHTML = marked.parse(responseText);
-                                    
-                                    // Auto-scroll as text comes in
-                                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                                    
-                                    // Highlight code blocks
-                                    contentDiv.querySelectorAll('pre code').forEach((block) => {
-                                        hljs.highlightBlock(block);
-                                    });
-                                }
-                                
-                                // Handle done event
-                                if (eventData.done) {
-                                    break;
-                                }
-                            } catch (e) {
-                                console.error('Error parsing SSE event:', e);
-                            }
+                            // Add to conversation history
+                            conversationHistory.push({
+                                question: question,
+                                answer: aiResponse
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error processing message:', error);
+                        if (!errorOccurred) {
+                            aiMessageDiv.innerHTML = `<div class="message-content error">Error: ${error.message}</div>`;
+                            errorOccurred = true;
                         }
                     }
-                }
+                };
+                
+                eventSource.onerror = function(error) {
+                    clearTimeout(timeout);
+                    eventSource.close();
+                    console.error('EventSource error:', error);
+                    if (!errorOccurred && !aiResponse) {
+                        aiMessageDiv.innerHTML = '<div class="message-content error">Failed to get response. Please try again.</div>';
+                        errorOccurred = true;
+                    }
+                };
+                
             } catch (error) {
-                console.error('Error sending question:', error);
-                aiMessage.innerHTML = `<div class="message-content error">Error: Failed to get a response. Please try again later.</div>`;
+                console.error('Error:', error);
+                aiMessageDiv.innerHTML = `<div class="message-content error">Error: ${error.message}</div>`;
             } finally {
                 // Re-enable input
                 questionInput.disabled = false;
-                sendButton.disabled = false;
+                document.querySelector('.chat-input button').disabled = false;
                 questionInput.focus();
             }
         }
 
-        // Handle form submission
-        function handleQuestionSubmit(event) {
-            event.preventDefault();
-            const question = questionInput.value.trim();
-            if (!question) return;
-            
-            sendQuestion(question);
-            questionInput.value = '';
-        }
-        
-        // Add event listeners
-        questionForm.addEventListener('submit', handleQuestionSubmit);
-        sendButton.addEventListener('click', handleQuestionSubmit);
+        // Add event listeners for chat input
+        document.getElementById('question-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                askQuestion();
+            }
+        });
+
+        document.querySelector('.chat-input button').addEventListener('click', askQuestion);
     </script>
 </body>
 </html> 
