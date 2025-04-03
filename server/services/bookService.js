@@ -19,6 +19,101 @@ const execPromise = util.promisify(exec);
 // In-memory store for book analyses
 const bookAnalysesMap = new Map();
 
+// Directory for cached analyses
+const ANALYSIS_CACHE_DIR = path.join(__dirname, '../../data/analysis-cache');
+
+// Ensure cache directory exists
+async function ensureCacheDirectoryExists() {
+    try {
+        await fs.mkdir(ANALYSIS_CACHE_DIR, { recursive: true });
+        logger.info(`Analysis cache directory ready: ${ANALYSIS_CACHE_DIR}`);
+    } catch (error) {
+        logger.error(`Failed to create analysis cache directory: ${error.message}`);
+    }
+}
+
+// Initialize cache directory
+ensureCacheDirectoryExists();
+
+/**
+ * Get the cache file path for a book
+ * @param {string} bookId - Book identifier (typically filename)
+ * @returns {string} - Path to the cache file
+ */
+function getAnalysisCachePath(bookId) {
+    // Sanitize bookId to make it safe for filenames
+    const safeId = bookId.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    return path.join(ANALYSIS_CACHE_DIR, `${safeId}_analysis.json`);
+}
+
+/**
+ * Save book analysis to cache file
+ * @param {string} bookId - Book identifier
+ * @param {BookAnalysis} bookAnalysis - The book analysis object to save
+ * @returns {Promise<boolean>} - Whether the save was successful
+ */
+async function saveAnalysisToCache(bookId, bookAnalysis) {
+    if (!bookAnalysis || bookAnalysis.analysisStatus.status !== 'completed') {
+        return false;
+    }
+    
+    try {
+        const cachePath = getAnalysisCachePath(bookId);
+        
+        // Create a serializable copy of the analysis
+        const analysisData = {
+            bookInfo: bookAnalysis.bookInfo,
+            globalAnalysis: bookAnalysis.globalAnalysis,
+            analysisStatus: bookAnalysis.analysisStatus,
+            // We don't cache the full chunk data to reduce file size
+            chunkCount: bookAnalysis.chunks ? bookAnalysis.chunks.length : 0
+        };
+        
+        await fs.writeFile(cachePath, JSON.stringify(analysisData, null, 2));
+        logger.info(`Saved analysis cache for book: ${bookId} to ${cachePath}`);
+        return true;
+    } catch (error) {
+        logger.error(`Failed to save analysis cache for book ${bookId}: ${error.message}`);
+        return false;
+    }
+}
+
+/**
+ * Load book analysis from cache file
+ * @param {string} bookId - Book identifier
+ * @returns {Promise<BookAnalysis|null>} - The loaded book analysis or null if not found
+ */
+async function loadAnalysisFromCache(bookId) {
+    try {
+        const cachePath = getAnalysisCachePath(bookId);
+        
+        // Check if cache file exists
+        try {
+            await fs.access(cachePath);
+        } catch (error) {
+            // File doesn't exist
+            return null;
+        }
+        
+        // Read and parse cache file
+        const cacheData = JSON.parse(await fs.readFile(cachePath, 'utf8'));
+        
+        // Create book analysis object from cached data
+        const bookAnalysis = new BookAnalysis(cacheData.bookInfo);
+        bookAnalysis.globalAnalysis = cacheData.globalAnalysis;
+        bookAnalysis.analysisStatus = cacheData.analysisStatus;
+        
+        // The chunks array will be empty, but that's okay for most use cases
+        // since we only need the global analysis for the creative rewrite feature
+        
+        logger.info(`Loaded analysis cache for book: ${bookId} from ${cachePath}`);
+        return bookAnalysis;
+    } catch (error) {
+        logger.error(`Failed to load analysis cache for book ${bookId}: ${error.message}`);
+        return null;
+    }
+}
+
 /**
  * Extract text from a PDF file
  * @param {string} pdfPath - Path to the PDF file 
@@ -92,7 +187,7 @@ function getBookAnalysis(bookId) {
  */
 async function loadAndProcessBook(pdfPath, bookId, options = {}) {
     try {
-        // Check if we already have an analysis for this book
+        // Check if we already have an analysis for this book in memory
         if (bookAnalysesMap.has(bookId) && !options.force) {
             return {
                 success: true,
@@ -101,6 +196,23 @@ async function loadAndProcessBook(pdfPath, bookId, options = {}) {
                 status: 'exists',
                 bookInfo: bookAnalysesMap.get(bookId).bookInfo
             };
+        }
+        
+        // Check if we have a cached analysis for this book
+        if (!options.force) {
+            const cachedAnalysis = await loadAnalysisFromCache(bookId);
+            if (cachedAnalysis) {
+                // Store in memory
+                bookAnalysesMap.set(bookId, cachedAnalysis);
+                
+                return {
+                    success: true,
+                    message: `Book ${bookId} loaded from cache`,
+                    bookId,
+                    status: 'cached',
+                    bookInfo: cachedAnalysis.bookInfo
+                };
+            }
         }
         
         console.log(`Processing book: ${bookId}`);
@@ -168,6 +280,17 @@ async function loadAndProcessBook(pdfPath, bookId, options = {}) {
  * @returns {Promise<Object>} - Analysis result
  */
 async function analyzeBook(bookId, options = {}) {
+    // Check if we already have a completed analysis for this book
+    const existingAnalysis = bookAnalysesMap.get(bookId);
+    if (existingAnalysis && existingAnalysis.analysisStatus.status === 'completed' && !options.force) {
+        logger.info(`Book ${bookId} already has a completed analysis`);
+        return {
+            success: true,
+            message: 'Analysis already completed',
+            bookId
+        };
+    }
+
     // Get the book analysis from the map
     const bookAnalysis = bookAnalysesMap.get(bookId);
     if (!bookAnalysis) {
@@ -210,6 +333,9 @@ async function analyzeBook(bookId, options = {}) {
         bookAnalysis.globalAnalysis = synthesizedAnalysis.globalAnalysis;
         bookAnalysis.analysisStatus.status = 'completed';
         bookAnalysis.analysisStatus.endTime = new Date().toISOString();
+        
+        // 3. Save the analysis to cache
+        await saveAnalysisToCache(bookId, bookAnalysis);
         
         logger.info(`Analysis completed for book: ${bookId}`);
         
@@ -294,5 +420,8 @@ module.exports = {
     loadAndProcessBook,
     analyzeBook,
     getBookAnalysis,
-    getAnalysisResults
+    getAnalysisResults,
+    // Export cache-related functions for testing
+    loadAnalysisFromCache,
+    saveAnalysisToCache
 }; 

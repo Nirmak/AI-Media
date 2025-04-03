@@ -12,6 +12,16 @@ const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'deepseek-r1:7b';
 
 /**
+ * Remove content between <think> and </think> tags
+ * @param {string} text - The text to clean
+ * @returns {string} - The cleaned text
+ */
+function removeThinkingContent(text) {
+    if (!text) return text;
+    return text.replace(/<think>[\s\S]*?<\/think>/g, '');
+}
+
+/**
  * Synthesize all chunk analyses into a complete book analysis
  * @param {Array<TextChunk>} chunks - Array of text chunks with their analyses
  * @param {Object} bookInfo - Book information object
@@ -350,8 +360,9 @@ YOUR RESPONSE SHOULD:
 4. Be written in present tense
 5. Not include any direct quotes
 6. Not discuss themes or characters separately from plot events
+7. Not include any thinking, reasoning, or explanations of your process
 
-Respond with ONLY the plot summary paragraph, no additional explanations or introductions.`;
+Respond with ONLY the final plot summary paragraph, with no additional explanations, introductions, or thinking text.`;
 
     try {
         const response = await axios.post(OLLAMA_API_URL, {
@@ -360,10 +371,13 @@ Respond with ONLY the plot summary paragraph, no additional explanations or intr
             stream: false
         });
         
-        // Log the LLM response using our real-time logger
-        logger.llm('Plot Summary', response.data.response);
+        // Clean the response by removing any thinking content
+        const cleanResponse = removeThinkingContent(response.data.response);
         
-        bookAnalysis.globalAnalysis.plotSummary = response.data.response.trim();
+        // Log the LLM response using our real-time logger
+        logger.llm('Plot Summary', cleanResponse);
+        
+        bookAnalysis.globalAnalysis.plotSummary = cleanResponse.trim();
     } catch (error) {
         console.error('Error generating plot summary:', error);
         // Fallback to basic summary
@@ -595,7 +609,7 @@ FORMAT YOUR RESPONSE AS A VALID JSON OBJECT with the following structure:
   ]
 }
 
-Return ONLY the valid JSON object with no additional text.`;
+IMPORTANT: Return ONLY the valid JSON object with no additional text. Do not include any thinking, reasoning, or explanations of your process.`;
 
     try {
         const response = await axios.post(OLLAMA_API_URL, {
@@ -604,11 +618,14 @@ Return ONLY the valid JSON object with no additional text.`;
             stream: false
         });
         
+        // Clean the response by removing any thinking content
+        const cleanResponse = removeThinkingContent(response.data.response);
+        
         // Log the LLM response using our real-time logger
-        logger.llm('Narrative Structure', response.data.response);
+        logger.llm('Narrative Structure', cleanResponse);
         
         // Parse the response
-        const rawResponse = response.data.response.trim();
+        const rawResponse = cleanResponse.trim();
         
         // Extract JSON from the response
         const jsonMatch = rawResponse.match(/```json\n([\s\S]*?)\n```/) || 

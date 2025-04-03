@@ -1,0 +1,656 @@
+{
+  "bookInfo": {
+    "id": "Marked.pdf",
+    "title": "Marked: Valkyrie Academy Dragon Alliance",
+    "author": "Katrina Cope",
+    "path": "/home/nirmak/Documents/AI-Media/public/docs/Marked.pdf",
+    "pageCount": 24,
+    "metadata": {
+      "title": "Marked: Valkyrie Academy Dragon Alliance",
+      "author": "Katrina Cope",
+      "creator": "calibre 3.14.0 [https://calibre-ebook.com]",
+      "producer": "calibre 3.14.0 [https://calibre-ebook.com]",
+      "creationdate": "Wed Aug 25 17:24:35 2021 CEST",
+      "custom_metadata": "no",
+      "metadata_stream": "yes",
+      "tagged": "no",
+      "userproperties": "no",
+      "suspects": "no",
+      "form": "none",
+      "javascript": "no",
+      "pages": "24",
+      "encrypted": "no",
+      "page_size": "612 x 792 pts (letter)",
+      "page_rot": "0",
+      "file_size": "628618 bytes",
+      "optimized": "no",
+      "pdf_version": "1.4"
+    },
+    "tableOfContents": null
+  },
+  "globalAnalysis": {
+    "title": "Marked: Valkyrie Academy Dragon Alliance",
+    "characters": [
+      {
+        "name": "Valkyrie",
+        "description": "A Valkyrie with a superior demeanor, implying she believes her worth is determined by her background.. A speaking character who addresses the narrator and mentions sparing another being.",
+        "role": "An upper-class Valkyrie who judges others harshly based on their origin.;  Ally or Spokesperson",
+        "appearances": 2,
+        "pages": []
+      },
+      {
+        "name": "I",
+        "description": "A young Valkyrie student with experience at the academy.. The protagonist who is determined to protect a dragon egg despite the creature's attacks.",
+        "role": "Narrator/Principal Character; Protagonist, Heroine",
+        "appearances": 2,
+        "pages": []
+      },
+      {
+        "name": "Kara",
+        "description": "Kara is Kara Vanir, the protagonist who confronts her archenemy Rota.",
+        "role": "Protagonist and character against whom conflicts arise",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Rota",
+        "description": "Rota is an archenemy of Kara's, part of Vanir's tribe.",
+        "role": "Antagonist and member of Vanir's tribe",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Mist",
+        "description": "Mist is a companion character with unspecified role in the conflict.",
+        "role": "Companion",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Prima",
+        "description": "Prima is another companion character, possibly involved in the narrative or conflict setup.",
+        "role": "Companion",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Vanir",
+        "description": "Vanir is described as Kara's archenemy and a wingless being.",
+        "role": "Antagonist and Vanir's tribe member",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Narrator/Guide",
+        "description": "The narrator who offers guidance and insight into the Valkyries' world, hinting at personal struggles.",
+        "role": "A helpful figure guiding the protagonist through the world of Valkyries.",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Winged Creature (First Mention)",
+        "description": "A large, bat-like creature approaching the dragon eggs.",
+        "role": "Adversary/Environmental Element",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Dragon Eggs",
+        "description": "Golden dragon eggs found in dangerous territory.",
+        "role": "Key Element of Conflict",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Creature",
+        "description": "An attacking monster that inflicts harm on the protagonist and later causes significant physical damage.",
+        "role": "Antagonist",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Eggs",
+        "description": "The dragons' eggs being studied and protected by the protagonist.",
+        "role": "Object of study and significance",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "She",
+        "description": "A mother dragon with fiery eyes and intense gaze, who seems to offer protection but hides her true nature.",
+        "role": "Protector/Mother",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Katrina Cope",
+        "description": "Author of young adult and preteen/family fantasy novels.",
+        "role": "Main character and author.",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Husband",
+        "description": "Supportive partner who has helped with reading and motivation.",
+        "role": "Secondary character, supportive husband.",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Three Sons",
+        "description": "Provide support and encouragement.",
+        "role": "Family members providing emotional support.",
+        "appearances": 1,
+        "pages": []
+      }
+    ],
+    "mainCharacters": [
+      {
+        "name": "Valkyrie",
+        "description": "A Valkyrie with a superior demeanor, implying she believes her worth is determined by her background.. A speaking character who addresses the narrator and mentions sparing another being.",
+        "role": "An upper-class Valkyrie who judges others harshly based on their origin.;  Ally or Spokesperson",
+        "appearances": 2,
+        "pages": []
+      },
+      {
+        "name": "I",
+        "description": "A young Valkyrie student with experience at the academy.. The protagonist who is determined to protect a dragon egg despite the creature's attacks.",
+        "role": "Narrator/Principal Character; Protagonist, Heroine",
+        "appearances": 2,
+        "pages": []
+      },
+      {
+        "name": "Kara",
+        "description": "Kara is Kara Vanir, the protagonist who confronts her archenemy Rota.",
+        "role": "Protagonist and character against whom conflicts arise",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Rota",
+        "description": "Rota is an archenemy of Kara's, part of Vanir's tribe.",
+        "role": "Antagonist and member of Vanir's tribe",
+        "appearances": 1,
+        "pages": []
+      }
+    ],
+    "supportingCharacters": [
+      {
+        "name": "Mist",
+        "description": "Mist is a companion character with unspecified role in the conflict.",
+        "role": "Companion",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Prima",
+        "description": "Prima is another companion character, possibly involved in the narrative or conflict setup.",
+        "role": "Companion",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Vanir",
+        "description": "Vanir is described as Kara's archenemy and a wingless being.",
+        "role": "Antagonist and Vanir's tribe member",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Narrator/Guide",
+        "description": "The narrator who offers guidance and insight into the Valkyries' world, hinting at personal struggles.",
+        "role": "A helpful figure guiding the protagonist through the world of Valkyries.",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Winged Creature (First Mention)",
+        "description": "A large, bat-like creature approaching the dragon eggs.",
+        "role": "Adversary/Environmental Element",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Dragon Eggs",
+        "description": "Golden dragon eggs found in dangerous territory.",
+        "role": "Key Element of Conflict",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Creature",
+        "description": "An attacking monster that inflicts harm on the protagonist and later causes significant physical damage.",
+        "role": "Antagonist",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Eggs",
+        "description": "The dragons' eggs being studied and protected by the protagonist.",
+        "role": "Object of study and significance",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "She",
+        "description": "A mother dragon with fiery eyes and intense gaze, who seems to offer protection but hides her true nature.",
+        "role": "Protector/Mother",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Katrina Cope",
+        "description": "Author of young adult and preteen/family fantasy novels.",
+        "role": "Main character and author.",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Husband",
+        "description": "Supportive partner who has helped with reading and motivation.",
+        "role": "Secondary character, supportive husband.",
+        "appearances": 1,
+        "pages": []
+      },
+      {
+        "name": "Three Sons",
+        "description": "Provide support and encouragement.",
+        "role": "Family members providing emotional support.",
+        "appearances": 1,
+        "pages": []
+      }
+    ],
+    "plotSummary": "Kara's fall during an accident at the academy hall leads to a confrontation with Rota, who reveals Vanir's involvement in her injury. Meanwhile, the narrator finds herself in the wildlands, where she encounters three golden dragon eggs hidden beneath claws. A winged creature approaches them, creating tension as the narrator flees in panic. The protagonist begins her struggle against this creature, facing severe physical harm each time it attacks. However, when she races to save an egg that is about to be destroyed by a dragon mother, she narrowly escapes with only minor injuries. This moment of saving the egg brings a resolution or turning point as she later sees the dragon mother who protects her eggs, prompting introspection.\n\nThe ground rumbles as the dragon lands nearby, and the narrator feels fear in her head, questioning why she is there despite the danger. The narrative concludes with the narrator acknowledging readers' support and encouragement, along with an announcement of her books achieving Amazon bestseller rankings, symbolizing a turning point in her journey toward self-discovery and community connection.",
+    "majorEvents": [
+      {
+        "description": "Kara falls due to tripping on her feet in the academy hall, sustaining injuries.",
+        "importance": "This incident introduces conflict between Kara and Rota.",
+        "position": 0,
+        "pageStart": null,
+        "pageEnd": null
+      },
+      {
+        "description": "The narrator finds three golden dragon eggs hidden beneath a creature's claws.",
+        "importance": "Sets up the conflict and stakes.",
+        "position": 3,
+        "pageStart": null,
+        "pageEnd": null
+      },
+      {
+        "description": "The protagonist starts trying to eliminate the creature but it attacks her, causing physical harm.",
+        "importance": "Shows initial conflict and protagonist's struggle.",
+        "position": 4,
+        "pageStart": null,
+        "pageEnd": null
+      },
+      {
+        "description": "The narrator feels cornered, overwhelmed by the dragon's gaze, forcing her to take action despite danger.",
+        "importance": "Centers the conflict between the narrator and the dragon mother.",
+        "position": 5,
+        "pageStart": null,
+        "pageEnd": null
+      },
+      {
+        "description": "Announcement of Amazon bestseller rankings for her books.",
+        "importance": "Highlights her achievement in book sales, indicating popularity.",
+        "position": 6,
+        "pageStart": null,
+        "pageEnd": null
+      }
+    ],
+    "themes": [
+      {
+        "name": "Conflict",
+        "description": "Internal and external conflicts between characters like Kara and Rota.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Identity andtribal loyalty",
+        "description": "Themes surrounding personal identity and Vanir's tribe's influence.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Class vs. Meritocracy",
+        "description": "The text explores whether worth is determined by background or individual ability, as implied by Valkyrie's dismissive remarks.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Internal Conflict",
+        "description": "The narrator grapples with self-worth and hope despite failing hopes, showing internal struggle for identity.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Protection of Rare Dragons",
+        "description": "The importance of taming and protecting rare dragons in danger.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Danger in Wild Terrestrial Areas",
+        "description": "The perilous nature of the wildlands for those not protected.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Adventure",
+        "description": "Experiencing thrilling and dangerous situations to achieve goals.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Friendship",
+        "description": "The bond between the protagonist and the dragon eggs, shown through study and protection.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Courage",
+        "description": "Demonstrating bravery in face of intense danger for the sake of others' survival.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Survival",
+        "description": "The central theme of escaping danger and making quick decisions.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Protective Instincts",
+        "description": "The dragon's instinct to protect the egg despite personal danger.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Loyalty",
+        "description": "The implied trust between the narrator and the Valkyrie, as seen in their interaction.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Support and Family",
+        "description": "The role of immediate family in providing support and motivation.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Reader Engagement",
+        "description": "The importance of readers' feedback and reviews in promoting the author's work.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "name": "Personal Motivation",
+        "description": "The drive for creative writing and personal satisfaction from creating content.",
+        "occurrences": 1,
+        "pages": []
+      }
+    ],
+    "settings": [
+      {
+        "location": "Valkyrie Academy",
+        "description": "Setting with hard floors and a lively environment where people leave quickly.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Valkyrie hangars or training grounds",
+        "description": "A detailed military setting with specific elements like paletiled hallways and dragon-stables.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Academy gates",
+        "description": "A formal, possibly adversarial location, setting a competitive tone.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Wildlands of the Dragon Territories",
+        "description": "Unstable and dangerous area where creatures and eggs are present.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Indoors (Academy Walls)",
+        "description": "Safe but artificial environment with dragon egg displays.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Various outdoor terrains",
+        "description": "Including hills, cliffs, and dragon pens.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Forest environment",
+        "description": "Primarily inside a forest setting implied by ground rumbling and proximity to eggs.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Queensland, Australia",
+        "description": "Location where the author resides.",
+        "occurrences": 1,
+        "pages": []
+      },
+      {
+        "location": "Home and family environment",
+        "description": "Setting of personal life influencing her work.",
+        "occurrences": 1,
+        "pages": []
+      }
+    ],
+    "timeline": [
+      {
+        "description": "Kara falls due to tripping on her feet in the academy hall, sustaining injuries.",
+        "importance": "This incident introduces conflict between Kara and Rota.",
+        "page": null
+      },
+      {
+        "description": "Rota confronts Kara, revealing Vanir's involvement in the fall.",
+        "importance": "Sets up the primary conflict of the story.",
+        "page": null
+      },
+      {
+        "description": "Valkyrie dismisses the narrator's presence and talks about the inability of others to have wings, emphasizing her own exclusivity.",
+        "importance": "This event highlights the theme of class-based judgment and self-worth.",
+        "page": null
+      },
+      {
+        "description": "The narrator flees in panic upon being warned by a flying beast, indicating rising tension and danger.",
+        "importance": "Signifies the protagonist's increasing isolation and growing conflict.",
+        "page": null
+      },
+      {
+        "description": "The narrator finds three golden dragon eggs hidden beneath a creature's claws.",
+        "importance": "Sets up the conflict and stakes.",
+        "page": null
+      },
+      {
+        "description": "A winged creature approaches the eggs, creating tension in the wildlands of dragons.",
+        "importance": "Introduces the primary antagonist.",
+        "page": null
+      },
+      {
+        "description": "The narrator attempts to stop the creature by throwing rocks, but misses with the first attempt.",
+        "importance": "Shows the narrator's inexperience and fear.",
+        "page": null
+      },
+      {
+        "description": "The winged creature takes an egg instead of being harmed by the rocks.",
+        "importance": "Turns the conflict against the narrator.",
+        "page": null
+      },
+      {
+        "description": "The protagonist starts trying to eliminate the creature but it attacks her, causing physical harm.",
+        "importance": "Shows initial conflict and protagonist's struggle.",
+        "page": null
+      },
+      {
+        "description": "The creature attacks again, inflicting further physical pain on the protagonist who narrowly escapes with a minor injury.",
+        "importance": "Highlights increasing danger and loss of hope.",
+        "page": null
+      },
+      {
+        "description": "The protagonist finds an egg that is about to roll into danger and races towards it before the mother dragon can find it.",
+        "importance": "Demonstrates proactive action and emotional investment in saving the egg.",
+        "page": null
+      },
+      {
+        "description": "The protagonist successfully saves the egg but later sees the dragon mother who protects her own eggs, prompting a resolution or turning point.",
+        "importance": "Culminates the narrative with emotional depth and realization.",
+        "page": null
+      },
+      {
+        "description": "The narrator feels cornered, overwhelmed by the dragon's gaze, forcing her to take action despite danger.",
+        "importance": "Centers the conflict between the narrator and the dragon mother.",
+        "page": null
+      },
+      {
+        "description": "The ground rumbles as the dragon lands nearby after moving closer to the egg.",
+        "importance": "Introduces the dragon's arrival and proximity, heightening tension.",
+        "page": null
+      },
+      {
+        "description": "The narrator experiences fear in her head questioning why she is there.",
+        "importance": "Shows internal conflict and vulnerability.",
+        "page": null
+      },
+      {
+        "description": "Acknowledgment of readers' support and encouragement.",
+        "importance": "Reflects the author's gratitude and reliance on readers for continued success.",
+        "page": null
+      },
+      {
+        "description": "Announcement of Amazon bestseller rankings for her books.",
+        "importance": "Highlights her achievement in book sales, indicating popularity.",
+        "page": null
+      }
+    ],
+    "style": {
+      "tone": "tense, dramatic tone with hyperbole for emphasis.",
+      "voice": "third-person perspective",
+      "literaryDevices": [
+        "hyperbole",
+        "personification",
+        "\"literarydevices\": [\"irony\", \"stenography\"],",
+        "metaphor",
+        "descriptive language",
+        "dialogue through onomatopoeia",
+        "dramatic description",
+        "alliteration",
+        "internal monologue",
+        "acknowledgment"
+      ],
+      "notable": [
+        "DIALOGUE INTENSITY",
+        "MACBETH-LIKE TENSION",
+        "Descriptive language for settings",
+        "Confrontational tone when addressing the dragon eggs",
+        "Descriptive imagery of danger",
+        "Physical descriptions of injuries",
+        "Emotional appeals to the reader about saving lives",
+        "Descriptive language highlighting vulnerability",
+        "dedication to readers",
+        "social media engagement"
+      ]
+    },
+    "structure": {
+      "type": "non-linear",
+      "arc": "The narrative follows a traditional expository-rising action structure but includes non-linear segments to introduce themes, conflicts, and character development.",
+      "segments": [
+        {
+          "name": "Exposition",
+          "description": "Introduces conflict between Kara and Rota through Kara's accident, highlighting their confrontation.",
+          "approximate_location": "Early middle"
+        },
+        {
+          "name": "Rising Action",
+          "description": "Protagonist faces initial danger as a Valkyrie and must take risks for others' survival, showcasing growth and dedication.",
+          "approximate_location": "Middle"
+        },
+        {
+          "name": "Conflict Introduction",
+          "description": "Introduces tension between narrator and dragon mother, hints at future conflicts with Valkyrie's presence, and establishes survival and loyalty themes.",
+          "approximate_location": "Mid to late middle"
+        },
+        {
+          "name": "Author Introduction",
+          "description": "Segment introduces the author and her works without specific plot details, setting narrative style tone for the book.",
+          "approximate_location": "End of middle or beginning/end"
+        }
+      ]
+    },
+    "context": {
+      "historical": null,
+      "cultural": null,
+      "authorContext": null
+    },
+    "perspectives": [],
+    "keyQuotes": [
+      {
+        "quote": "‘Sniggers bounce off the hard academy walls,'",
+        "explanation": "Illustrates the chaotic and energetic setting, hinting at social dynamics.",
+        "page": null,
+        "chunkId": "chunk-0"
+      },
+      {
+        "quote": "‘Not all Valkyries can be born from the pure blood of the direct line of Odin’s creation. And because of this, you will never have wings.’",
+        "explanation": "Illustrates the theme of class-based judgment and self-worth.",
+        "page": null,
+        "chunkId": "chunk-2"
+      },
+      {
+        "quote": "‘We should not let them become extinct because they are a symbol of our heritage.’",
+        "explanation": "Implies the value of protecting rare dragons.",
+        "page": null,
+        "chunkId": "chunk-3"
+      },
+      {
+        "quote": "‘It took one hit to make it stop.’",
+        "explanation": "Shows the narrator's hesitation and fear.",
+        "page": null,
+        "chunkId": "chunk-3"
+      },
+      {
+        "quote": "The creature was relentless in its attacks, and I couldn’t help but feel a surge of determination to defend myself and protect this fragile life.",
+        "explanation": "Emphasizes protagonist's resolve and her role as protector.",
+        "page": null,
+        "chunkId": "chunk-4"
+      },
+      {
+        "quote": "I don't need reminding—I nod and back away.",
+        "explanation": "Shows the narrator's quick thinking and resolve.",
+        "page": null,
+        "chunkId": "chunk-5"
+      },
+      {
+        "quote": "‘I write what I love doing and create stories that inspire and comfort.’",
+        "explanation": "Anchors the author's motivation and dedication to her work.",
+        "page": null,
+        "chunkId": "chunk-6"
+      },
+      {
+        "quote": "‘I want my books to speak directly to readers, not just authors.’",
+        "explanation": "Encourages direct connection with readers in storytelling.",
+        "page": null,
+        "chunkId": "chunk-6"
+      }
+    ]
+  },
+  "analysisStatus": {
+    "chunksAnalyzed": 7,
+    "totalChunks": 7,
+    "startTime": "2025-04-03T20:38:40.810Z",
+    "endTime": "2025-04-03T20:42:44.390Z",
+    "status": "completed",
+    "error": null
+  },
+  "chunkCount": 7
+}

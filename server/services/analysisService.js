@@ -11,6 +11,16 @@ const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'deepseek-r1:7b';
 
 /**
+ * Remove content between <think> and </think> tags
+ * @param {string} text - The text to clean
+ * @returns {string} - The cleaned text
+ */
+function removeThinkingContent(text) {
+    if (!text) return text;
+    return text.replace(/<think>[\s\S]*?<\/think>/g, '');
+}
+
+/**
  * Analyze a text chunk and extract literary elements
  * @param {TextChunk} chunk - The text chunk to analyze
  * @returns {Promise<ChunkAnalysis>} - The analysis results
@@ -30,7 +40,10 @@ async function analyzeChunk(chunk) {
         });
         
         // Process the response
-        const rawOutput = response.data.response;
+        let rawOutput = response.data.response;
+        
+        // Remove thinking content
+        rawOutput = removeThinkingContent(rawOutput);
         
         // Log the LLM response using our real-time logger
         logger.llm(`Chunk Analysis: ${chunk.id}`, rawOutput);
@@ -127,6 +140,7 @@ FORMAT YOUR RESPONSE AS A VALID JSON OBJECT with the following structure:
 
 IMPORTANT:
 - Return ONLY valid JSON that can be parsed. Don't include extra text or explanations outside the JSON.
+- Do not include any thinking, reasoning process, or preamble text.
 - If you can't find information for a category, use empty arrays or null values.
 - Be specific and concise in your analysis.
 - Only include elements explicitly mentioned or strongly implied in the text segment.`;
