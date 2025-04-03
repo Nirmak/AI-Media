@@ -529,6 +529,70 @@
             background-color: rgba(229, 57, 53, 0.1);
             margin: 10px 0;
         }
+        
+        /* Styles for Creative Rewrite Tab */
+        #rewrite-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .rewrite-controls label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .rewrite-controls select, 
+        .rewrite-controls input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        
+        #generate-rewrite-btn {
+             padding: 10px 15px;
+            background-color: #673ab7; /* Purple color */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            align-self: flex-start; /* Align button to the left */
+        }
+        
+        #generate-rewrite-btn:hover {
+            background-color: #512da8;
+        }
+        
+        #generate-rewrite-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #rewrite-output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            min-height: 100px; /* Give it some initial height */
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            overflow-y: auto; /* Add scroll if content exceeds height */
+            max-height: 400px; /* Limit max height */
+        }
+        
+        #rewrite-output .loading-dots { /* Style loading dots inside output */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px; /* Adjust height as needed */
+        }
     </style>
 </head>
 <body>
@@ -553,6 +617,7 @@
             <div class="tab-navigation">
                 <div id="chat-tab" class="tab active">Chat</div>
                 <div id="structure-tab" class="tab">Book Structure</div>
+                <div id="rewrite-tab" class="tab">Creative Rewrite</div>
             </div>
             <div id="chat-content" class="tab-content active">
                 <div class="chat-controls">
@@ -621,6 +686,39 @@
                     </div>
                 </div>
             </div>
+            <div id="rewrite-content" class="tab-content">
+                <h2>Creative Rewrite</h2>
+                <p>Rewrite the book's core message and intent in a different genre or style, inspired by its analysis.</p>
+                <div class="rewrite-controls">
+                    <div>
+                        <label for="genre-select">Select a Genre:</label>
+                        <select id="genre-select">
+                            <option value="">-- Select Genre --</option>
+                            <option value="Science Fiction">Science Fiction</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Mystery">Mystery</option>
+                            <option value="Thriller">Thriller</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Historical Fiction">Historical Fiction</option>
+                            <option value="Children's Story">Children's Story</option>
+                            <option value="Noir">Noir</option>
+                            <option value="Cyberpunk">Cyberpunk</option>
+                            <option value="Comedy">Comedy</option>
+                            <option value="Poem">Poem</option>
+                            <!-- Add more genres as needed -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="custom-genre-input">Or Enter Custom Genre/Style:</label>
+                        <input type="text" id="custom-genre-input" placeholder="e.g., 'Shakespearean Tragedy', 'Blog Post'">
+                    </div>
+                    <button id="generate-rewrite-btn">Generate Rewrite</button>
+                </div>
+                <div id="rewrite-output">
+                    <!-- Rewritten content will appear here -->
+                    Select or enter a genre and click "Generate Rewrite". Requires completed book analysis.
+                </div>
+            </div>
         </div>
     </div>
     
@@ -674,16 +772,29 @@
         document.getElementById('chat-tab').addEventListener('click', function() {
             document.getElementById('chat-tab').classList.add('active');
             document.getElementById('structure-tab').classList.remove('active');
+            document.getElementById('rewrite-tab').classList.remove('active');
             document.getElementById('chat-content').classList.add('active');
             document.getElementById('structure-content').classList.remove('active');
+            document.getElementById('rewrite-content').classList.remove('active');
         });
         
         document.getElementById('structure-tab').addEventListener('click', function() {
             document.getElementById('structure-tab').classList.add('active');
             document.getElementById('chat-tab').classList.remove('active');
+            document.getElementById('rewrite-tab').classList.remove('active');
             document.getElementById('structure-content').classList.add('active');
             document.getElementById('chat-content').classList.remove('active');
+            document.getElementById('rewrite-content').classList.remove('active');
             updateBookStructure();
+        });
+        
+        document.getElementById('rewrite-tab').addEventListener('click', function() {
+            document.getElementById('rewrite-tab').classList.add('active');
+            document.getElementById('chat-tab').classList.remove('active');
+            document.getElementById('structure-tab').classList.remove('active');
+            document.getElementById('rewrite-content').classList.add('active');
+            document.getElementById('chat-content').classList.remove('active');
+            document.getElementById('structure-content').classList.remove('active');
         });
         
         // Update book structure view
@@ -1309,6 +1420,162 @@
         });
 
         document.querySelector('.chat-input button').addEventListener('click', askQuestion);
+        
+        // --- Creative Rewrite Logic ---
+        
+        const genreSelect = document.getElementById('genre-select');
+        const customGenreInput = document.getElementById('custom-genre-input');
+        const generateRewriteBtn = document.getElementById('generate-rewrite-btn');
+        const rewriteOutput = document.getElementById('rewrite-output');
+        let rewriteEventSource = null; // To keep track of the EventSource connection
+
+        // Function to handle generating the creative rewrite
+        async function generateCreativeRewrite() {
+            // Determine the selected genre (prioritize custom input)
+            const customGenre = customGenreInput.value.trim();
+            const selectedGenre = customGenre || genreSelect.value;
+            
+            if (!selectedGenre) {
+                rewriteOutput.innerHTML = '<div class="error">Please select or enter a genre/style.</div>';
+                return;
+            }
+            
+            // Disable controls
+            generateRewriteBtn.disabled = true;
+            genreSelect.disabled = true;
+            customGenreInput.disabled = true;
+            
+            // Show loading indicator
+            rewriteOutput.innerHTML = `
+                <div class="loading-dots">Generating rewrite in <strong>${selectedGenre}</strong> style...<span>.</span><span>.</span><span>.</span></div>
+            `;
+            
+            // Close any existing connection
+            if (rewriteEventSource) {
+                rewriteEventSource.close();
+            }
+            
+            try {
+                // Create new EventSource
+                rewriteEventSource = new EventSource(`/api/creative-rewrite?genre=${encodeURIComponent(selectedGenre)}`);
+                let rewriteResponse = '';
+                let errorOccurred = false;
+                
+                // Timeout (longer for potentially complex generation)
+                const timeout = setTimeout(() => {
+                    if (rewriteEventSource) rewriteEventSource.close();
+                    if (!rewriteResponse && !errorOccurred) { // Check if we received nothing
+                         rewriteOutput.innerHTML = '<div class="message-content error">Rewrite generation timed out. The task might be too complex or the server is busy. Please try again with a simpler genre or later.</div>';
+                         errorOccurred = true; // Prevent other error messages
+                         // Re-enable controls here because finally might not run if timeout clears everything
+                         generateRewriteBtn.disabled = false;
+                         genreSelect.disabled = false;
+                         customGenreInput.disabled = false;
+                    }
+                }, 60000); // 60 second timeout
+                
+                rewriteEventSource.onmessage = function(event) {
+                    // Reset timeout on receiving data
+                    clearTimeout(timeout);
+                    
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.error) {
+                            throw new Error(data.error); 
+                        }
+                        
+                        if (data.chunk) {
+                             if (rewriteResponse === '') { // First chunk
+                                rewriteOutput.innerHTML = ''; // Clear loading message
+                            }
+                            rewriteResponse += data.chunk;
+                            // Render markdown progressively
+                            rewriteOutput.innerHTML = renderMarkdown(rewriteResponse);
+                            // Scroll to bottom of output area
+                            rewriteOutput.scrollTop = rewriteOutput.scrollHeight;
+                        }
+                        
+                        if (data.done) {
+                            rewriteEventSource.close();
+                            rewriteEventSource = null;
+                             // Final render and highlight
+                            rewriteOutput.innerHTML = renderMarkdown(rewriteResponse);
+                            rewriteOutput.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightBlock(block);
+                            });
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error processing rewrite message:', error);
+                        if (!errorOccurred) {
+                            rewriteOutput.innerHTML = `<div class="message-content error">Error generating rewrite: ${error.message}</div>`;
+                            errorOccurred = true;
+                        }
+                         if (rewriteEventSource) rewriteEventSource.close();
+                         rewriteEventSource = null;
+                    }
+                };
+                
+                rewriteEventSource.onerror = function(error) {
+                    clearTimeout(timeout);
+                    if (rewriteEventSource) rewriteEventSource.close();
+                    rewriteEventSource = null;
+                    console.error('Rewrite EventSource error:', error);
+                    if (!errorOccurred && !rewriteResponse) { // Only show if no other error/response displayed
+                         rewriteOutput.innerHTML = '<div class="message-content error">Failed to connect for rewrite generation. Is the server running?</div>';
+                         errorOccurred = true;
+                    }
+                    // Ensure controls are re-enabled on connection error
+                    generateRewriteBtn.disabled = false;
+                    genreSelect.disabled = false;
+                    customGenreInput.disabled = false;
+                };
+                
+            } catch (error) {
+                console.error('Error setting up rewrite EventSource:', error);
+                rewriteOutput.innerHTML = `<div class="message-content error">Setup Error: ${error.message}</div>`;
+                 if (rewriteEventSource) rewriteEventSource.close();
+                 rewriteEventSource = null;
+                 errorOccurred = true; // Prevent finally block from overwriting this error
+            } finally {
+                 // Re-enable controls if no error occurred during setup or processing that closed the source already
+                 // The timeout and error handlers inside might re-enable sooner.
+                 if (!errorOccurred || rewriteEventSource) { // Check if still potentially running
+                     // Timeout/onmessage(done)/onerror should handle closing and re-enabling
+                     // This is a fallback
+                     setTimeout(() => { // Delay slightly to ensure async errors are caught
+                         if (!rewriteEventSource) { // Only if closed
+                            generateRewriteBtn.disabled = false;
+                            genreSelect.disabled = false;
+                            customGenreInput.disabled = false;
+                         }
+                     }, 100);
+                 } else {
+                    // If an error already occurred and closed the source
+                    generateRewriteBtn.disabled = false;
+                    genreSelect.disabled = false;
+                    customGenreInput.disabled = false;
+                 }
+            }
+        }
+
+        // Add event listener for the generate button
+        generateRewriteBtn.addEventListener('click', generateCreativeRewrite);
+        
+        // Optional: Clear custom genre if dropdown is selected
+        genreSelect.addEventListener('change', () => {
+            if (genreSelect.value !== '') {
+                customGenreInput.value = '';
+            }
+        });
+        // Optional: Clear dropdown if custom genre is typed
+        customGenreInput.addEventListener('input', () => {
+            if (customGenreInput.value.trim() !== '') {
+                genreSelect.value = '';
+            }
+        });
+
     </script>
 </body>
 </html> 
