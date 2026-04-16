@@ -198,8 +198,8 @@
             font-family: Consolas, Monaco, 'Andale Mono', monospace;
             font-size: 0.9em;
             background-color: rgba(0,0,0,0.05);
-            padding: 2px 4px;
             border-radius: 3px;
+            padding: 0.2em 0.4em;
         }
         .message-content pre code {
             background-color: transparent;
@@ -240,21 +240,210 @@
         /* Chat controls */
         .chat-controls {
             display: flex;
-            justify-content: center;
-            margin: 10px 0;
+            justify-content: flex-end;
+            padding: 0 20px 10px;
             gap: 10px;
         }
         .control-button {
-            padding: 8px 15px;
             background-color: #f5f5f5;
             border: 1px solid #ddd;
             border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
         .control-button:hover {
-            background-color: #e8e8e8;
+            background-color: #e9e9e9;
+        }
+        
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-top: 10px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            border-bottom-color: #fff;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: -1px;
+        }
+        .tab:hover:not(.active) {
+            background-color: #f5f5f5;
+        }
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+        .tab-content.active {
+            display: flex;
+        }
+        .book-structure {
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .analysis-status {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        #analysis-status-message {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar-outer {
+            height: 20px;
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar-inner {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        #analysis-progress-text {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .analysis-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-button:hover {
+            background-color: #3e8e41;
+        }
+        
+        .action-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .analysis-section {
+            margin: 30px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .analysis-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-left: 4px solid #4CAF50;
+            padding-left: 10px;
+        }
+        
+        .analysis-content {
+            line-height: 1.6;
+        }
+        
+        /* Character and theme cards */
+        .character-card, .theme-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .character-name, .theme-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .character-description, .theme-description {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .character-meta, .theme-meta {
+            font-size: 12px;
+            color: #777;
+            margin-top: 8px;
+        }
+        
+        /* Structure segments */
+        .segment-card {
+            background-color: #f5f8ff;
+            border: 1px solid #d0d9f0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .segment-name {
+            font-weight: bold;
+            color: #335599;
+            margin-bottom: 5px;
+        }
+        
+        .segment-location {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        
+        /* TOC styling */
+        .toc-entry {
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .toc-page {
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .book-structure {
+                padding: 10px;
+            }
+            
+            .analysis-section {
+                margin: 20px 0;
+            }
         }
         
         /* Loading overlay */
@@ -266,10 +455,10 @@
             bottom: 0;
             background-color: rgba(255, 255, 255, 0.8);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            flex-direction: column;
         }
         .loading-spinner {
             width: 50px;
@@ -280,179 +469,129 @@
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
-        
-        /* Style rewriting feature styles */
-        .rewrite-container {
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #ddd;
-            display: none; /* Hidden by default */
-        }
-        .rewrite-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .rewrite-header h3 {
-            margin: 0;
-            font-size: 18px;
-        }
-        .rewrite-toggle {
-            background: none;
-            border: none;
-            color: #3498db;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: underline;
-        }
-        .rewrite-form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .form-group select, .form-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .page-range {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .page-range input {
-            width: 70px;
-        }
-        .rewrite-button {
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
-        .rewrite-button:hover {
-            background-color: #2980b9;
-        }
-        .rewrite-result {
-            margin-top: 20px;
-            display: none;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #fff;
-            overflow: hidden;
-        }
-        .rewrite-tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 0;
-            background-color: #f5f5f5;
-        }
-        .tab {
-            padding: 8px 15px;
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 4px 4px 0 0;
-            cursor: pointer;
-        }
-        .tab.active {
-            background-color: white;
-            border-bottom: 1px solid white;
-            margin-bottom: -1px;
-        }
-        .tab-content-container {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-top: none;
-        }
-        .tab-content {
-            padding: 15px;
-            background-color: white;
-            border-top: none;
-            height: 400px;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            width: 100%;
-            box-sizing: border-box;
-            position: absolute;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease;
-        }
-        
-        .tab-content.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .use-entire-doc {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .use-entire-doc input {
-            width: auto;
-        }
-        .download-button {
-            padding: 8px 15px;
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            display: inline-block;
-        }
-        .download-button:hover {
-            background-color: #219653;
-        }
-        .view-pages-button {
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: background-color 0.2s;
-        }
-        .view-pages-button:hover {
-            background-color: #e8e8e8;
-        }
-        .view-pages-button.active {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 18px;
+            color: #333;
+        }
+        .chart-container {
+            margin-top: 20px;
+            color: #333;
+        }
+        .book-category {
+            margin-bottom: 10px;
+        }
+        
+        /* Loading animation */
+        .loading-dots {
+            display: inline-flex;
+            align-items: center;
+            height: 1em;
+        }
+        
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: #555;
+            border-radius: 50%;
+            display: inline-block;
+            animation: dots-animation 1.4s infinite ease-in-out both;
+        }
+        
+        .loading-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes dots-animation {
+            0%, 80%, 100% { 
+                transform: scale(0);
+                opacity: 0.2;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Error messages */
+        .error {
+            color: #e53935;
+            padding: 10px;
+            border-left: 3px solid #e53935;
+            background-color: rgba(229, 57, 53, 0.1);
+            margin: 10px 0;
+        }
+        
+        /* Styles for Creative Rewrite Tab */
+        #rewrite-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .rewrite-controls label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .rewrite-controls select, 
+        .rewrite-controls input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        
+        #generate-rewrite-btn {
+             padding: 10px 15px;
+            background-color: #673ab7; /* Purple color */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            align-self: flex-start; /* Align button to the left */
+        }
+        
+        #generate-rewrite-btn:hover {
+            background-color: #512da8;
+        }
+        
+        #generate-rewrite-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #rewrite-output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            min-height: 100px; /* Give it some initial height */
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            overflow-y: auto; /* Add scroll if content exceeds height */
+            max-height: 400px; /* Limit max height */
+        }
+        
+        #rewrite-output .loading-dots { /* Style loading dots inside output */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px; /* Adjust height as needed */
         }
     </style>
 </head>
@@ -475,70 +614,109 @@
                     <option value="">Loading books...</option>
                 </select>
             </div>
-            <div class="chat-controls">
-                <button class="control-button" id="clear-conversation">Clear Conversation</button>
-                <button class="control-button" id="toggle-rewrite">Rewrite Text</button>
+            <div class="tab-navigation">
+                <div id="chat-tab" class="tab active">Chat</div>
+                <div id="structure-tab" class="tab">Book Structure</div>
+                <div id="rewrite-tab" class="tab">Creative Rewrite</div>
             </div>
-            <div class="chat-messages" id="chat-messages">
-                <div class="message system-message">
-                    <div class="message-content">Welcome! Ask a question about the book content.</div>
+            <div id="chat-content" class="tab-content active">
+                <div class="chat-controls">
+                    <button class="control-button" id="clear-conversation">Clear Conversation</button>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message system-message">
+                        <div class="message-content">Welcome! Ask a question about the book content.</div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="question-input" placeholder="Type your question...">
+                    <button onclick="askQuestion()">Ask</button>
                 </div>
             </div>
-            <div class="chat-input">
-                <input type="text" id="question-input" placeholder="Type your question...">
-                <button onclick="askQuestion()">Ask</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Rewrite Feature Container -->
-    <div class="rewrite-container" id="rewrite-container">
-        <div class="rewrite-header">
-            <h3>Rewrite Text in Different Styles</h3>
-            <button class="rewrite-toggle" id="close-rewrite">Close</button>
-        </div>
-        <div class="rewrite-form">
-            <div class="form-group">
-                <label for="style-select">Select Style:</label>
-                <select id="style-select">
-                    <option value="Sci-Fi">Science Fiction</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Academic">Academic Paper</option>
-                    <option value="Mystery">Mystery/Thriller</option>
-                    <option value="Children's Story">Children's Story</option>
-                </select>
-            </div>
-        </div>
-        <button class="rewrite-button" id="rewrite-button">Rewrite Document</button>
-        
-        <!-- Generation status display -->
-        <div id="generation-status" style="margin-top: 20px; display: none; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 10px; position: relative;">
-            <div class="status-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <span><strong>Processing document...</strong></span>
-                <span id="processing-info">Analyzing structure...</span>
-            </div>
-            <div class="progress-container" style="width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 4px; margin-bottom: 10px;">
-                <div id="progress-bar" style="width: 0%; height: 100%; background-color: #4CAF50; border-radius: 4px; transition: width 0.3s;"></div>
-            </div>
-            <div id="chunk-info" style="font-size: 12px; color: #666;">
-                Currently processing: <span id="current-chunk">-</span>
-            </div>
-        </div>
-        
-        <!-- Real-time generation output -->
-        <div id="generation-output" style="margin-top: 15px; display: none;">
-            <h4>Generated Output</h4>
-            <div id="output-container" style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; background-color: white; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-size: 14px; line-height: 1.6; font-family: 'Georgia', serif;">
-                <!-- Content will be added here dynamically -->
-            </div>
-            
-            <div class="output-controls" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <button class="download-button" id="download-text">Download as Text File</button>
-                    <button class="control-button" id="copy-text" style="background-color: #f8f9fa;">Copy to Clipboard</button>
+            <div id="structure-content" class="tab-content">
+                <div class="book-structure">
+                    <h2>Book Structure</h2>
+                    <h3 id="structure-book-title">Book Title</h3>
+                    
+                    <!-- Analysis Status Section -->
+                    <div class="analysis-status">
+                        <div id="analysis-status-message">Analysis not started</div>
+                        <div id="analysis-progress-container" style="display: none">
+                            <div class="progress-bar-outer">
+                                <div id="analysis-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
+                            </div>
+                            <div id="analysis-progress-text">0%</div>
+                        </div>
+                        <div class="analysis-controls">
+                            <button id="start-analysis-btn" class="action-button">Start Analysis</button>
+                            <button id="refresh-analysis-btn" class="action-button" style="display: none">Refresh Results</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Results Section -->
+                    <div id="analysis-results" style="display: none">
+                        <div class="analysis-section">
+                            <h3>Plot Summary</h3>
+                            <div id="plot-summary" class="analysis-content"></div>
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <h3>Narrative Structure</h3>
+                            <div id="narrative-structure" class="analysis-content">
+                                <div id="structure-type"></div>
+                                <div id="structure-arc"></div>
+                                <div id="structure-segments"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <h3>Characters</h3>
+                            <div id="characters-list" class="analysis-content"></div>
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <h3>Themes</h3>
+                            <div id="themes-list" class="analysis-content"></div>
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <h3>Table of Contents</h3>
+                            <div id="table-of-contents" class="analysis-content"></div>
+                        </div>
+                    </div>
                 </div>
-                <div id="navigation-help" style="font-size: 12px; color: #666;">
-                    <p>You can scroll through the text while it's being generated.</p>
+            </div>
+            <div id="rewrite-content" class="tab-content">
+                <h2>Creative Rewrite</h2>
+                <p>Rewrite the book's core message and intent in a different genre or style, inspired by its analysis.</p>
+                <div class="rewrite-controls">
+                    <div>
+                        <label for="genre-select">Select a Genre:</label>
+                        <select id="genre-select">
+                            <option value="">-- Select Genre --</option>
+                            <option value="Science Fiction">Science Fiction</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Mystery">Mystery</option>
+                            <option value="Thriller">Thriller</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Historical Fiction">Historical Fiction</option>
+                            <option value="Children's Story">Children's Story</option>
+                            <option value="Noir">Noir</option>
+                            <option value="Cyberpunk">Cyberpunk</option>
+                            <option value="Comedy">Comedy</option>
+                            <option value="Poem">Poem</option>
+                            <!-- Add more genres as needed -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="custom-genre-input">Or Enter Custom Genre/Style:</label>
+                        <input type="text" id="custom-genre-input" placeholder="e.g., 'Shakespearean Tragedy', 'Blog Post'">
+                    </div>
+                    <button id="generate-rewrite-btn">Generate Rewrite</button>
+                </div>
+                <div id="rewrite-output">
+                    <!-- Rewritten content will appear here -->
+                    Select or enter a genre and click "Generate Rewrite". Requires completed book analysis.
                 </div>
             </div>
         </div>
@@ -555,6 +733,9 @@
         
         // Current book
         let currentBook = null;
+        
+        // Analysis polling interval
+        let analysisPollingInterval = null;
         
         // Toggle PDF visibility - REMOVED
         
@@ -575,7 +756,7 @@
             chatMessages.innerHTML = '';
             chatMessages.innerHTML = `
                 <div class="message system-message">
-                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook?.title || currentBook?.name || 'the book'}".</div>
+                    <div class="message-content">Conversation cleared. Ask a new question about "${currentBook && (currentBook.title || currentBook.name) || 'the book'}".</div>
                 </div>
             `;
         }
@@ -587,11 +768,348 @@
             }
         });
         
+        // Tab navigation
+        document.getElementById('chat-tab').addEventListener('click', function() {
+            document.getElementById('chat-tab').classList.add('active');
+            document.getElementById('structure-tab').classList.remove('active');
+            document.getElementById('rewrite-tab').classList.remove('active');
+            document.getElementById('chat-content').classList.add('active');
+            document.getElementById('structure-content').classList.remove('active');
+            document.getElementById('rewrite-content').classList.remove('active');
+        });
+        
+        document.getElementById('structure-tab').addEventListener('click', function() {
+            document.getElementById('structure-tab').classList.add('active');
+            document.getElementById('chat-tab').classList.remove('active');
+            document.getElementById('rewrite-tab').classList.remove('active');
+            document.getElementById('structure-content').classList.add('active');
+            document.getElementById('chat-content').classList.remove('active');
+            document.getElementById('rewrite-content').classList.remove('active');
+            updateBookStructure();
+        });
+        
+        document.getElementById('rewrite-tab').addEventListener('click', function() {
+            document.getElementById('rewrite-tab').classList.add('active');
+            document.getElementById('chat-tab').classList.remove('active');
+            document.getElementById('structure-tab').classList.remove('active');
+            document.getElementById('rewrite-content').classList.add('active');
+            document.getElementById('chat-content').classList.remove('active');
+            document.getElementById('structure-content').classList.remove('active');
+        });
+        
+        // Update book structure view
+        function updateBookStructure() {
+            // Update the title
+            const bookTitle = currentBook && (currentBook.title || currentBook.name) || 'Unknown Book';
+            document.getElementById('structure-book-title').textContent = bookTitle;
+            
+            // Get the latest analysis status
+            if (currentBook) {
+                checkAnalysisStatus(currentBook.name);
+            }
+        }
+        
+        // Analysis functions
+        
+        // Check the status of book analysis
+        async function checkAnalysisStatus(bookId) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/books/${bookId}/analysis`);
+                const data = await response.json();
+                
+                // Update the UI with the status
+                updateAnalysisStatusUI(data);
+                
+                return data;
+            } catch (error) {
+                console.error('Error checking analysis status:', error);
+                document.getElementById('analysis-status-message').textContent = 
+                    'Error checking analysis status. Please try again.';
+                return null;
+            }
+        }
+        
+        // Start book analysis
+        async function startBookAnalysis(bookId) {
+            try {
+                // Update UI state
+                document.getElementById('start-analysis-btn').disabled = true;
+                document.getElementById('analysis-status-message').textContent = 'Starting analysis...';
+                
+                // Show progress bar
+                document.getElementById('analysis-progress-container').style.display = 'block';
+                
+                // Send request to start analysis
+                const response = await fetch(`http://localhost:5000/api/books/${bookId}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        options: {
+                            concurrency: 1 // Use a single thread
+                        }
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Start polling for updates
+                    startPollingAnalysisStatus(bookId);
+                } else {
+                    document.getElementById('analysis-status-message').textContent = 
+                        `Failed to start analysis: ${data.error}`;
+                    document.getElementById('start-analysis-btn').disabled = false;
+                }
+            } catch (error) {
+                console.error('Error starting analysis:', error);
+                document.getElementById('analysis-status-message').textContent = 
+                    'Error starting analysis. Please try again.';
+                document.getElementById('start-analysis-btn').disabled = false;
+            }
+        }
+        
+        // Start polling for analysis status updates
+        function startPollingAnalysisStatus(bookId) {
+            // Clear any existing polling
+            if (analysisPollingInterval) {
+                clearInterval(analysisPollingInterval);
+            }
+            
+            // Set up polling at regular intervals
+            analysisPollingInterval = setInterval(async () => {
+                const status = await checkAnalysisStatus(bookId);
+                
+                // If analysis is completed or failed, stop polling
+                if (status && (status.status === 'completed' || status.status === 'failed')) {
+                    clearInterval(analysisPollingInterval);
+                    analysisPollingInterval = null;
+                    
+                    // Enable the refresh button
+                    document.getElementById('refresh-analysis-btn').style.display = 'block';
+                }
+            }, 5000); // Poll every 5 seconds
+        }
+        
+        // Update the analysis status UI
+        function updateAnalysisStatusUI(statusData) {
+            const statusMessage = document.getElementById('analysis-status-message');
+            const progressBar = document.getElementById('analysis-progress-bar');
+            const progressText = document.getElementById('analysis-progress-text');
+            const progressContainer = document.getElementById('analysis-progress-container');
+            const startButton = document.getElementById('start-analysis-btn');
+            const refreshButton = document.getElementById('refresh-analysis-btn');
+            const resultsSection = document.getElementById('analysis-results');
+            
+            // Update status message
+            if (statusData.status === 'not_found') {
+                statusMessage.textContent = 'Book not processed for analysis.';
+                startButton.disabled = false;
+                progressContainer.style.display = 'none';
+                refreshButton.style.display = 'none';
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            if (statusData.status === 'pending') {
+                statusMessage.textContent = 'Analysis pending. Click Start Analysis to begin.';
+                startButton.disabled = false;
+                progressContainer.style.display = 'none';
+                refreshButton.style.display = 'none';
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            if (statusData.status === 'in-progress') {
+                statusMessage.textContent = 'Analysis in progress...';
+                startButton.disabled = true;
+                progressContainer.style.display = 'block';
+                refreshButton.style.display = 'none';
+                
+                // Update progress bar
+                if (statusData.progress) {
+                    const percentage = statusData.progress.percentage || 0;
+                    progressBar.style.width = `${percentage}%`;
+                    progressText.textContent = `${percentage}% (${statusData.progress.current}/${statusData.progress.total} chunks)`;
+                }
+                
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            if (statusData.status === 'completed') {
+                statusMessage.textContent = 'Analysis completed!';
+                startButton.disabled = true;
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '100%';
+                progressText.textContent = '100% - Complete';
+                refreshButton.style.display = 'block';
+                
+                // Display results
+                displayAnalysisResults(statusData);
+                resultsSection.style.display = 'block';
+                return;
+            }
+            
+            if (statusData.status === 'failed') {
+                statusMessage.textContent = `Analysis failed: ${statusData.error || 'Unknown error'}`;
+                startButton.disabled = false;
+                progressContainer.style.display = 'none';
+                refreshButton.style.display = 'none';
+                resultsSection.style.display = 'none';
+                return;
+            }
+            
+            // Default case
+            statusMessage.textContent = `Analysis status: ${statusData.status}`;
+        }
+        
+        // Display analysis results
+        function displayAnalysisResults(data) {
+            if (!data.analysis) return;
+            
+            const analysis = data.analysis;
+            
+            // Update plot summary
+            const plotSummary = document.getElementById('plot-summary');
+            plotSummary.innerHTML = analysis.plotSummary || 'No plot summary available.';
+            
+            // Update narrative structure
+            if (analysis.structure) {
+                document.getElementById('structure-type').innerHTML = `
+                    <strong>Type:</strong> ${analysis.structure.type || 'Not determined'}
+                `;
+                
+                document.getElementById('structure-arc').innerHTML = `
+                    <strong>Arc:</strong> ${analysis.structure.arc || 'Not determined'}
+                `;
+                
+                // Render structure segments
+                const segmentsContainer = document.getElementById('structure-segments');
+                segmentsContainer.innerHTML = '<strong>Segments:</strong>';
+                
+                if (analysis.structure.segments && analysis.structure.segments.length > 0) {
+                    const segmentsList = document.createElement('div');
+                    segmentsList.className = 'segments-list';
+                    
+                    analysis.structure.segments.forEach(segment => {
+                        const segmentCard = document.createElement('div');
+                        segmentCard.className = 'segment-card';
+                        
+                        segmentCard.innerHTML = `
+                            <div class="segment-name">${segment.name || 'Unnamed segment'}</div>
+                            <div class="segment-location">${segment.approximate_location || ''}</div>
+                            <div class="segment-description">${segment.description || 'No description available'}</div>
+                        `;
+                        
+                        segmentsList.appendChild(segmentCard);
+                    });
+                    
+                    segmentsContainer.appendChild(segmentsList);
+                } else {
+                    segmentsContainer.innerHTML += ' No segments identified.';
+                }
+            } else {
+                document.getElementById('narrative-structure').innerHTML = 'No narrative structure analysis available.';
+            }
+            
+            // Update characters list
+            const charactersContainer = document.getElementById('characters-list');
+            charactersContainer.innerHTML = '';
+            
+            if (analysis.mainCharacters && analysis.mainCharacters.length > 0) {
+                const charSection = document.createElement('div');
+                charSection.innerHTML = '<h4>Main Characters</h4>';
+                
+                analysis.mainCharacters.forEach(char => {
+                    const charCard = document.createElement('div');
+                    charCard.className = 'character-card';
+                    
+                    charCard.innerHTML = `
+                        <div class="character-name">${char.name}</div>
+                        <div class="character-description">${char.description || ''}</div>
+                        <div class="character-meta">
+                            ${char.role ? `<div><strong>Role:</strong> ${char.role}</div>` : ''}
+                            ${char.appearances ? `<div><strong>Appearances:</strong> ${char.appearances}</div>` : ''}
+                        </div>
+                    `;
+                    
+                    charSection.appendChild(charCard);
+                });
+                
+                charactersContainer.appendChild(charSection);
+            } else {
+                charactersContainer.innerHTML = 'No character information available.';
+            }
+            
+            // Update themes list
+            const themesContainer = document.getElementById('themes-list');
+            themesContainer.innerHTML = '';
+            
+            if (analysis.themes && analysis.themes.length > 0) {
+                analysis.themes.slice(0, 10).forEach(theme => {
+                    const themeCard = document.createElement('div');
+                    themeCard.className = 'theme-card';
+                    
+                    themeCard.innerHTML = `
+                        <div class="theme-name">${theme.name}</div>
+                        <div class="theme-description">${theme.description || ''}</div>
+                        ${theme.occurrences ? `<div class="theme-meta">Occurrences: ${theme.occurrences}</div>` : ''}
+                    `;
+                    
+                    themesContainer.appendChild(themeCard);
+                });
+            } else {
+                themesContainer.innerHTML = 'No themes identified.';
+            }
+            
+            // Update table of contents
+            const tocContainer = document.getElementById('table-of-contents');
+            tocContainer.innerHTML = '';
+            
+            if (data.bookInfo && data.bookInfo.tableOfContents && data.bookInfo.tableOfContents.length > 0) {
+                const tocList = document.createElement('div');
+                tocList.className = 'toc-list';
+                
+                data.bookInfo.tableOfContents.forEach(tocEntry => {
+                    const entry = document.createElement('div');
+                    entry.className = 'toc-entry';
+                    
+                    entry.innerHTML = `
+                        <span class="toc-title">${tocEntry.title}</span>
+                        <span class="toc-page">Page ${tocEntry.page}</span>
+                    `;
+                    
+                    tocList.appendChild(entry);
+                });
+                
+                tocContainer.appendChild(tocList);
+            } else {
+                tocContainer.innerHTML = 'No table of contents found.';
+            }
+        }
+        
         // Book selector
         const bookSelect = document.getElementById('book-select');
         
+        // Event listeners for Analysis buttons
+        document.getElementById('start-analysis-btn').addEventListener('click', function() {
+            if (currentBook) {
+                startBookAnalysis(currentBook.name);
+            } else {
+                alert('Please select a book first');
+            }
+        });
+        
+        document.getElementById('refresh-analysis-btn').addEventListener('click', function() {
+            if (currentBook) {
+                checkAnalysisStatus(currentBook.name);
+            }
+        });
+        
         // Fetch available books
-        async function loadBooks() {
+        async function fetchBooks() {
             try {
                 const response = await fetch('http://localhost:5000/api/books');
                 const data = await response.json();
@@ -620,6 +1138,7 @@
                         currentBook = book;
                         updateBookTitle(book.title || book.name);
                         updatePdfViewer(book.path);
+                        updateBookStructure(); // Update structure view with current book
                         
                         // Update welcome message with book title
                         const chatMessages = document.getElementById('chat-messages');
@@ -663,11 +1182,17 @@
                     // Update PDF viewer
                     updatePdfViewer(data.book.path);
                     
+                    // Update book structure view
+                    updateBookStructure();
+                    
                     // Clear conversation
                     clearConversation();
                     
-                    // Reset page range inputs for rewriting
-                    resetPageRangeInputs();
+                    // Clear any existing analysis polling
+                    if (analysisPollingInterval) {
+                        clearInterval(analysisPollingInterval);
+                        analysisPollingInterval = null;
+                    }
                 } else {
                     alert(`Failed to change book: ${data.error}`);
                 }
@@ -692,7 +1217,7 @@
         // Book select change event
         bookSelect.addEventListener('change', function() {
             const selectedBook = this.value;
-            if (selectedBook && selectedBook !== currentBook?.name) {
+            if (selectedBook && selectedBook !== (currentBook && currentBook.name)) {
                 changeBook(selectedBook);
             }
         });
@@ -703,8 +1228,30 @@
                 hljs.highlightBlock(block);
             });
             
+            // Tab switching functionality
+            const chatTab = document.getElementById('chat-tab');
+            const structureTab = document.getElementById('structure-tab');
+            const chatContent = document.getElementById('chat-content');
+            const structureContent = document.getElementById('structure-content');
+            
+            chatTab.addEventListener('click', function() {
+                chatTab.classList.add('active');
+                structureTab.classList.remove('active');
+                chatContent.classList.add('active');
+                structureContent.classList.remove('active');
+            });
+            
+            structureTab.addEventListener('click', function() {
+                structureTab.classList.add('active');
+                chatTab.classList.remove('active');
+                structureContent.classList.add('active');
+                chatContent.classList.remove('active');
+            });
+            
             // Fetch available books
-            loadBooks();
+            fetchBooks();
+            
+            // ... other existing code ...
         });
 
         // Function to safely render markdown with XSS protection
@@ -762,480 +1309,273 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function askQuestion() {
+        // Function to handle asking questions
+        async function askQuestion() {
             const questionInput = document.getElementById('question-input');
             const question = questionInput.value.trim();
+            
             if (!question) return;
             
-            // Add user question to chat
-            addMessage(question, 'user');
+            // Disable input while processing
             questionInput.value = '';
+            questionInput.disabled = true;
+            document.querySelector('.chat-input button').disabled = true;
             
-            // Show loading message
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'message ai-message loading';
-            loadingDiv.innerHTML = `<div class="message-content"><em>Thinking...</em></div>`;
-            document.getElementById('chat-messages').appendChild(loadingDiv);
+            // Add user message
+            const chatMessages = document.getElementById('chat-messages');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.innerHTML = `<div class="message-content">${question}</div>`;
+            chatMessages.appendChild(userMessageDiv);
             
-            // Send question to the server with conversation history
-            fetch('http://localhost:5000/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    question,
-                    history: conversationHistory.slice(-6) // Send last 6 messages (3 exchanges)
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Remove loading message
-                loadingDiv.remove();
+            // Add AI message container with loading indicator
+            const aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message ai-message';
+            aiMessageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>
+                </div>
+            `;
+            chatMessages.appendChild(aiMessageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            try {
+                // Create EventSource for streaming response
+                const eventSource = new EventSource(`http://localhost:5000/api/chat?question=${encodeURIComponent(question)}`);
+                let aiResponse = '';
+                let errorOccurred = false;
                 
-                // Add AI response to chat with markdown
-                addMessage(data.answer, 'ai');
-            })
-            .catch(error => {
-                // Remove loading message
-                loadingDiv.remove();
+                // Set up a timeout
+                const timeout = setTimeout(() => {
+                    eventSource.close();
+                    if (!aiResponse) {
+                        aiMessageDiv.innerHTML = '<div class="message-content error">Response timeout. Please try again.</div>';
+                    }
+                }, 30000); // 30 second timeout
                 
-                // Show error message
-                addMessage('**Error:** Failed to get response. Please try again.', 'ai');
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        
+                        if (data.chunk) {
+                            aiResponse += data.chunk;
+                            // Convert markdown to HTML on the fly
+                            aiMessageDiv.innerHTML = `<div class="message-content">${marked.parse(aiResponse)}</div>`;
+                            // Scroll to bottom
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                        
+                        if (data.done) {
+                            clearTimeout(timeout);
+                            eventSource.close();
+                            
+                            // Add to conversation history
+                            conversationHistory.push({
+                                question: question,
+                                answer: aiResponse
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error processing message:', error);
+                        if (!errorOccurred) {
+                            aiMessageDiv.innerHTML = `<div class="message-content error">Error: ${error.message}</div>`;
+                            errorOccurred = true;
+                        }
+                    }
+                };
+                
+                eventSource.onerror = function(error) {
+                    clearTimeout(timeout);
+                    eventSource.close();
+                    console.error('EventSource error:', error);
+                    if (!errorOccurred && !aiResponse) {
+                        aiMessageDiv.innerHTML = '<div class="message-content error">Failed to get response. Please try again.</div>';
+                        errorOccurred = true;
+                    }
+                };
+                
+            } catch (error) {
                 console.error('Error:', error);
-            });
+                aiMessageDiv.innerHTML = `<div class="message-content error">Error: ${error.message}</div>`;
+            } finally {
+                // Re-enable input
+                questionInput.disabled = false;
+                document.querySelector('.chat-input button').disabled = false;
+                questionInput.focus();
+            }
         }
 
-        // Allow pressing Enter to submit
-        document.getElementById('question-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+        // Add event listeners for chat input
+        document.getElementById('question-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 askQuestion();
             }
         });
 
-        // Rewrite text toggle
-        document.getElementById('toggle-rewrite').addEventListener('click', function() {
-            document.getElementById('rewrite-container').style.display = 'block';
+        document.querySelector('.chat-input button').addEventListener('click', askQuestion);
+        
+        // --- Creative Rewrite Logic ---
+        
+        const genreSelect = document.getElementById('genre-select');
+        const customGenreInput = document.getElementById('custom-genre-input');
+        const generateRewriteBtn = document.getElementById('generate-rewrite-btn');
+        const rewriteOutput = document.getElementById('rewrite-output');
+        let rewriteEventSource = null; // To keep track of the EventSource connection
+
+        // Function to handle generating the creative rewrite
+        async function generateCreativeRewrite() {
+            // Determine the selected genre (prioritize custom input)
+            const customGenre = customGenreInput.value.trim();
+            const selectedGenre = customGenre || genreSelect.value;
             
-            // No need to reset any elements now since page selection was removed
-        });
-        
-        document.getElementById('close-rewrite').addEventListener('click', function() {
-            document.getElementById('rewrite-container').style.display = 'none';
-        });
-        
-        // Function to navigate PDF to specific page
-        function navigateToPdfPage(pageNumber) {
-            if (!currentBook) {
-                alert('No book is currently loaded');
+            if (!selectedGenre) {
+                rewriteOutput.innerHTML = '<div class="error">Please select or enter a genre/style.</div>';
                 return;
             }
             
-            const pdfFrame = document.getElementById('pdf-frame');
+            // Disable controls
+            generateRewriteBtn.disabled = true;
+            genreSelect.disabled = true;
+            customGenreInput.disabled = true;
             
-            // Instead of just changing the hash, reload the iframe with the page parameter
-            // This ensures browser compatibility across different PDF viewers
-            let pdfUrl = pdfFrame.src.split('#')[0];
+            // Show loading indicator
+            rewriteOutput.innerHTML = `
+                <div class="loading-dots">Generating rewrite in <strong>${selectedGenre}</strong> style...<span>.</span><span>.</span><span>.</span></div>
+            `;
             
-            // Force a reload by adding a timestamp and the page parameter
-            const timestamp = new Date().getTime();
-            pdfFrame.src = `${pdfUrl}#page=${pageNumber}&t=${timestamp}`;
-            
-            // Add a more visible page indicator to the PDF container
-            const pdfContainer = document.getElementById('pdf-container');
-            
-            // Remove any existing page indicator
-            const existingIndicator = document.querySelector('.pdf-page-indicator');
-            if (existingIndicator) {
-                existingIndicator.remove();
-            }
-            
-            // Create a page indicator element
-            const pageIndicator = document.createElement('div');
-            pageIndicator.className = 'pdf-page-indicator';
-            pageIndicator.textContent = `Page ${pageNumber}`;
-            pageIndicator.style.position = 'absolute';
-            pageIndicator.style.top = '40px';
-            pageIndicator.style.left = '50%';
-            pageIndicator.style.transform = 'translateX(-50%)';
-            pageIndicator.style.backgroundColor = 'rgba(52, 152, 219, 0.8)';
-            pageIndicator.style.color = 'white';
-            pageIndicator.style.padding = '5px 10px';
-            pageIndicator.style.borderRadius = '4px';
-            pageIndicator.style.fontSize = '14px';
-            pageIndicator.style.zIndex = '100';
-            pageIndicator.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-            
-            // Add fallback instructions for PDF viewers that don't support direct page navigation
-            const fallbackInfo = document.createElement('div');
-            fallbackInfo.className = 'pdf-page-fallback';
-            fallbackInfo.textContent = `If page navigation doesn't work automatically, please manually navigate to page ${pageNumber} in the PDF viewer`;
-            fallbackInfo.style.position = 'absolute';
-            fallbackInfo.style.top = '80px';
-            fallbackInfo.style.left = '50%';
-            fallbackInfo.style.transform = 'translateX(-50%)';
-            fallbackInfo.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-            fallbackInfo.style.color = '#444';
-            fallbackInfo.style.padding = '5px 10px';
-            fallbackInfo.style.borderRadius = '4px';
-            fallbackInfo.style.fontSize = '12px';
-            fallbackInfo.style.zIndex = '100';
-            fallbackInfo.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-            fallbackInfo.style.maxWidth = '80%';
-            fallbackInfo.style.textAlign = 'center';
-            
-            pdfContainer.appendChild(pageIndicator);
-            pdfContainer.appendChild(fallbackInfo);
-            
-            // Make the indicators fade out after 8 seconds
-            setTimeout(() => {
-                pageIndicator.style.opacity = '0';
-                pageIndicator.style.transition = 'opacity 1s ease';
-                fallbackInfo.style.opacity = '0';
-                fallbackInfo.style.transition = 'opacity 1s ease';
-                
-                // Remove them after fade out
-                setTimeout(() => {
-                    if (pageIndicator.parentNode) {
-                        pageIndicator.parentNode.removeChild(pageIndicator);
-                    }
-                    if (fallbackInfo.parentNode) {
-                        fallbackInfo.parentNode.removeChild(fallbackInfo);
-                    }
-                }, 1000);
-            }, 8000);
-            
-            // Focus on the PDF viewer
-            pdfContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        // Rewrite button functionality
-        document.getElementById('rewrite-button').addEventListener('click', async function() {
-            const style = document.getElementById('style-select').value;
-            
-            // Show the generation status
-            const generationStatus = document.getElementById('generation-status');
-            generationStatus.style.display = 'block';
-            
-            // Show the output container immediately 
-            const generationOutput = document.getElementById('generation-output');
-            generationOutput.style.display = 'block';
-            
-            // Reset output container
-            const outputContainer = document.getElementById('output-container');
-            outputContainer.innerHTML = '';
-            
-            // Add a content div that will be updated
-            const contentDiv = document.createElement('div');
-            contentDiv.id = 'content-text';
-            contentDiv.style.whiteSpace = 'pre-wrap';
-            outputContainer.appendChild(contentDiv);
-            
-            // Update progress bar
-            document.getElementById('progress-bar').style.width = '5%';
-            document.getElementById('processing-info').textContent = 'Analyzing document structure...';
-            document.getElementById('current-chunk').textContent = 'Document analysis';
-            
-            // Change the rewrite button to show it's processing
-            const rewriteButton = this;
-            const originalButtonText = rewriteButton.textContent;
-            rewriteButton.disabled = true;
-            rewriteButton.innerHTML = '<span class="button-spinner"></span> Processing...';
-            rewriteButton.style.opacity = '0.7';
-            
-            // Add a spinner style if it doesn't exist
-            if (!document.querySelector('style[data-spinner-styles]')) {
-                const spinnerStyles = document.createElement('style');
-                spinnerStyles.setAttribute('data-spinner-styles', 'true');
-                spinnerStyles.textContent = `
-                .button-spinner {
-                    display: inline-block;
-                    width: 12px;
-                    height: 12px;
-                    border: 2px solid rgba(255,255,255,0.3);
-                    border-radius: 50%;
-                    border-top-color: #fff;
-                    animation: spin 1s ease-in-out infinite;
-                    margin-right: 8px;
-                }
-                @keyframes spin {
-                    to { transform: rotate(360deg); }
-                }
-                `;
-                document.head.appendChild(spinnerStyles);
+            // Close any existing connection
+            if (rewriteEventSource) {
+                rewriteEventSource.close();
             }
             
             try {
-                // First, request document structure analysis
-                const analysisResponse = await fetch('http://localhost:5000/api/analyze-structure', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        bookName: currentBook?.name
-                    }),
-                });
+                // Create new EventSource
+                rewriteEventSource = new EventSource(`/api/creative-rewrite?genre=${encodeURIComponent(selectedGenre)}`);
+                let rewriteResponse = '';
+                let errorOccurred = false;
                 
-                if (!analysisResponse.ok) {
-                    const error = await analysisResponse.json();
-                    throw new Error(error.error || 'Failed to analyze document structure');
-                }
-                
-                const structureData = await analysisResponse.json();
-                
-                // Update progress
-                document.getElementById('progress-bar').style.width = '15%';
-                document.getElementById('processing-info').textContent = 'Structure analyzed. Starting rewrite...';
-                
-                // Request streaming rewrite with the selected style
-                const rewriteResponse = await fetch('http://localhost:5000/api/rewrite-stream', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        style,
-                        structure: structureData.structure
-                    }),
-                });
-                
-                if (!rewriteResponse.ok) {
-                    const error = await rewriteResponse.json();
-                    throw new Error(error.error || 'Failed to rewrite text');
-                }
-                
-                // Process the stream
-                const reader = rewriteResponse.body.getReader();
-                const decoder = new TextDecoder();
-                let completeText = '';
-                let chunkCount = 0;
-                let errorCount = 0;
-                const totalChunks = structureData.structure.length;
-                
-                while (true) {
-                    const { value, done } = await reader.read();
-                    
-                    if (done) {
-                        // Processing complete
-                        document.getElementById('progress-bar').style.width = '100%';
-                        document.getElementById('processing-info').textContent = 'Complete!';
-                        document.getElementById('current-chunk').textContent = 'Finished processing';
-                        break;
+                // Timeout (longer for potentially complex generation)
+                const timeout = setTimeout(() => {
+                    if (rewriteEventSource) rewriteEventSource.close();
+                    if (!rewriteResponse && !errorOccurred) { // Check if we received nothing
+                         rewriteOutput.innerHTML = '<div class="message-content error">Rewrite generation timed out. The task might be too complex or the server is busy. Please try again with a simpler genre or later.</div>';
+                         errorOccurred = true; // Prevent other error messages
+                         // Re-enable controls here because finally might not run if timeout clears everything
+                         generateRewriteBtn.disabled = false;
+                         genreSelect.disabled = false;
+                         customGenreInput.disabled = false;
                     }
+                }, 60000); // 60 second timeout
+                
+                rewriteEventSource.onmessage = function(event) {
+                    // Reset timeout on receiving data
+                    clearTimeout(timeout);
                     
-                    // Decode and process the chunk
-                    const chunk = decoder.decode(value, { stream: true });
-                    
-                    // Handle JSON parsing in a try-catch block
                     try {
-                        // Split by newlines in case we get multiple JSON objects
-                        const jsonLines = chunk.split('\n').filter(line => line.trim());
+                        const data = JSON.parse(event.data);
                         
-                        for (const jsonLine of jsonLines) {
-                            try {
-                                if (!jsonLine.trim()) continue;
-                                
-                                // Parse the JSON data
-                                const data = JSON.parse(jsonLine);
-                                
-                                if (data.type === 'chunk_start') {
-                                    // Starting a new chunk
-                                    chunkCount++;
-                                    errorCount = 0; // Reset error count for new chunk
-                                    
-                                    // Update progress
-                                    const progress = 15 + (85 * (chunkCount / totalChunks));
-                                    document.getElementById('progress-bar').style.width = `${progress}%`;
-                                    document.getElementById('processing-info').textContent = `Processing chunk ${chunkCount} of ${totalChunks}`;
-                                    document.getElementById('current-chunk').textContent = data.title || `Part ${chunkCount}`;
-                                    
-                                    // Add a header for this chunk if it has a title
-                                    if (data.title) {
-                                        const headerElem = document.createElement('h3');
-                                        headerElem.style.marginTop = '20px';
-                                        headerElem.style.marginBottom = '10px';
-                                        headerElem.style.color = '#495057';
-                                        headerElem.textContent = data.title;
-                                        contentDiv.appendChild(headerElem);
-                                    }
-                                } 
-                                else if (data.type === 'token') {
-                                    // New token received
-                                    completeText += data.text;
-                                    
-                                    // Update content preserving HTML formatting
-                                    contentDiv.innerHTML = completeText;
-                                    
-                                    // Auto-scroll to new content only if user is already at the bottom
-                                    const isAtBottom = outputContainer.scrollHeight - outputContainer.scrollTop <= outputContainer.clientHeight + 50;
-                                    if (isAtBottom) {
-                                        outputContainer.scrollTop = outputContainer.scrollHeight;
-                                    }
-                                }
-                                else if (data.type === 'error') {
-                                    // Display error message in the output
-                                    errorCount++;
-                                    const errorElem = document.createElement('div');
-                                    errorElem.className = 'error-message'; // Using the CSS class we'll add
-                                    errorElem.textContent = `Error: ${data.message || 'Unknown error'}`;
-                                    contentDiv.appendChild(errorElem);
-                                    
-                                    // Don't stop processing - we'll continue with the next chunk
-                                    console.warn('Error in stream, but continuing:', data.message);
-                                }
-                            } catch (jsonError) {
-                                errorCount++;
-                                console.warn(`Error parsing JSON: ${jsonError.message}`, jsonLine.substring(0, 150));
-                                
-                                // Only show user errors that keep happening
-                                if (errorCount <= 2) {
-                                    // Try to handle some cases of malformed JSON
-                                    if (jsonLine.includes('token') && jsonLine.includes('text')) {
-                                        try {
-                                            // Try to extract text with a regex
-                                            const textMatch = jsonLine.match(/"text"\s*:\s*"([^"]*)"/);
-                                            if (textMatch && textMatch[1]) {
-                                                completeText += textMatch[1];
-                                                contentDiv.innerHTML = completeText;
-                                                console.log("Recovered text from malformed JSON");
-                                            }
-                                        } catch (e) {
-                                            // Silent fail for recovery attempts
-                                        }
-                                    }
-                                } else if (errorCount === 3) {
-                                    // After multiple errors, show a message once
-                                    const errorNote = document.createElement('div');
-                                    errorNote.className = 'error-message';
-                                    errorNote.textContent = "Some parts of the text may be missing due to formatting issues.";
-                                    contentDiv.appendChild(errorNote);
-                                }
-                            }
+                        if (data.error) {
+                            throw new Error(data.error); 
                         }
+                        
+                        if (data.chunk) {
+                             if (rewriteResponse === '') { // First chunk
+                                rewriteOutput.innerHTML = ''; // Clear loading message
+                            }
+                            rewriteResponse += data.chunk;
+                            // Render markdown progressively
+                            rewriteOutput.innerHTML = renderMarkdown(rewriteResponse);
+                            // Scroll to bottom of output area
+                            rewriteOutput.scrollTop = rewriteOutput.scrollHeight;
+                        }
+                        
+                        if (data.done) {
+                            rewriteEventSource.close();
+                            rewriteEventSource = null;
+                             // Final render and highlight
+                            rewriteOutput.innerHTML = renderMarkdown(rewriteResponse);
+                            rewriteOutput.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightBlock(block);
+                            });
+                        }
+                        
                     } catch (error) {
-                        errorCount++;
-                        console.error('Stream processing error:', error, chunk.substring(0, 100));
-                        
-                        // Add a warning after several errors
-                        if (errorCount === 3) {
-                            const errorDiv = document.createElement('div');
-                            errorDiv.className = 'error-message';
-                            errorDiv.textContent = 'Experiencing some issues with the stream. Processing will continue but some content may be missing.';
-                            contentDiv.appendChild(errorDiv);
+                        console.error('Error processing rewrite message:', error);
+                        if (!errorOccurred) {
+                            rewriteOutput.innerHTML = `<div class="message-content error">Error generating rewrite: ${error.message}</div>`;
+                            errorOccurred = true;
                         }
-                        
-                        // Try to recover by directly appending the text if it looks like content
-                        if (typeof chunk === 'string' && chunk.trim() && !chunk.includes('{') && !chunk.includes('}')) {
-                            completeText += chunk;
-                            contentDiv.innerHTML = completeText;
-                            console.log("Appended raw text after stream error");
-                        }
+                         if (rewriteEventSource) rewriteEventSource.close();
+                         rewriteEventSource = null;
                     }
-                }
-                
-                // Setup download functionality with the complete text
-                setupDownload(completeText, style);
-                
-                // Setup copy to clipboard with improved error handling
-                document.getElementById('copy-text').onclick = function() {
-                    navigator.clipboard.writeText(completeText).then(() => {
-                        this.textContent = 'Copied!';
-                        setTimeout(() => {
-                            this.textContent = 'Copy to Clipboard';
-                        }, 2000);
-                    }, (err) => {
-                        console.error('Failed to copy text to clipboard:', err);
-                        
-                        // Create error message
-                        const errorMessage = document.createElement('div');
-                        errorMessage.className = 'error-message';
-                        errorMessage.textContent = 'Failed to copy text to clipboard. Your browser may not support this feature or permission was denied.';
-                        errorMessage.style.marginTop = '10px';
-                        
-                        // Add the error message after the buttons
-                        const outputControls = document.querySelector('.output-controls');
-                        outputControls.appendChild(errorMessage);
-                        
-                        // Auto-remove the error after 5 seconds
-                        setTimeout(() => {
-                            if (errorMessage.parentNode) {
-                                errorMessage.parentNode.removeChild(errorMessage);
-                            }
-                        }, 5000);
-                    });
                 };
                 
-                // After the rewrite processing loop but before the end of the try-catch
-                // Add the CSS for error messages
-                if (!document.querySelector('style[data-error-styles]')) {
-                    const errorStyles = document.createElement('style');
-                    errorStyles.setAttribute('data-error-styles', 'true');
-                    errorStyles.textContent = `
-                    .error-message {
-                        color: #721c24;
-                        background-color: #f8d7da;
-                        border: 1px solid #f5c6cb;
-                        padding: 10px;
-                        margin: 10px 0;
-                        border-radius: 4px;
-                        font-size: 14px;
+                rewriteEventSource.onerror = function(error) {
+                    clearTimeout(timeout);
+                    if (rewriteEventSource) rewriteEventSource.close();
+                    rewriteEventSource = null;
+                    console.error('Rewrite EventSource error:', error);
+                    if (!errorOccurred && !rewriteResponse) { // Only show if no other error/response displayed
+                         rewriteOutput.innerHTML = '<div class="message-content error">Failed to connect for rewrite generation. Is the server running?</div>';
+                         errorOccurred = true;
                     }
-                    `;
-                    document.head.appendChild(errorStyles);
-                }
+                    // Ensure controls are re-enabled on connection error
+                    generateRewriteBtn.disabled = false;
+                    genreSelect.disabled = false;
+                    customGenreInput.disabled = false;
+                };
                 
             } catch (error) {
-                console.error('Error rewriting text:', error);
-                
-                // Show error in a non-modal way
-                const errorMessage = document.createElement('div');
-                errorMessage.className = 'error-message';
-                errorMessage.textContent = `Error: ${error.message}`;
-                contentDiv.appendChild(errorMessage);
-                
-                // Update status to show error
-                document.getElementById('processing-info').textContent = 'Error occurred';
-                document.getElementById('progress-bar').style.backgroundColor = '#f44336';
+                console.error('Error setting up rewrite EventSource:', error);
+                rewriteOutput.innerHTML = `<div class="message-content error">Setup Error: ${error.message}</div>`;
+                 if (rewriteEventSource) rewriteEventSource.close();
+                 rewriteEventSource = null;
+                 errorOccurred = true; // Prevent finally block from overwriting this error
             } finally {
-                // Reset the button state
-                rewriteButton.disabled = false;
-                rewriteButton.textContent = originalButtonText;
-                rewriteButton.style.opacity = '1';
+                 // Re-enable controls if no error occurred during setup or processing that closed the source already
+                 // The timeout and error handlers inside might re-enable sooner.
+                 if (!errorOccurred || rewriteEventSource) { // Check if still potentially running
+                     // Timeout/onmessage(done)/onerror should handle closing and re-enabling
+                     // This is a fallback
+                     setTimeout(() => { // Delay slightly to ensure async errors are caught
+                         if (!rewriteEventSource) { // Only if closed
+                            generateRewriteBtn.disabled = false;
+                            genreSelect.disabled = false;
+                            customGenreInput.disabled = false;
+                         }
+                     }, 100);
+                 } else {
+                    // If an error already occurred and closed the source
+                    generateRewriteBtn.disabled = false;
+                    genreSelect.disabled = false;
+                    customGenreInput.disabled = false;
+                 }
+            }
+        }
+
+        // Add event listener for the generate button
+        generateRewriteBtn.addEventListener('click', generateCreativeRewrite);
+        
+        // Optional: Clear custom genre if dropdown is selected
+        genreSelect.addEventListener('change', () => {
+            if (genreSelect.value !== '') {
+                customGenreInput.value = '';
             }
         });
-        
-        // Setup download functionality
-        function setupDownload(text, style) {
-            const downloadBtn = document.getElementById('download-text');
-            
-            downloadBtn.onclick = function() {
-                const filename = `${currentBook?.name || 'document'}-${style}-style.txt`;
-                const blob = new Blob([text], { type: 'text/plain' });
-                
-                // Create download link
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
-        }
-
-        // Function to reset page range inputs to reasonable values
-        function resetPageRangeInputs() {
-            // No longer needed, but keeping a simplified version for backwards compatibility
-            console.log('Page range inputs reset');
-        }
-
-        // Document ready function to initialize UI components
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initial books loading
-            loadBooks();
-            
-            // Rest of initialization code
+        // Optional: Clear dropdown if custom genre is typed
+        customGenreInput.addEventListener('input', () => {
+            if (customGenreInput.value.trim() !== '') {
+                genreSelect.value = '';
+            }
         });
+
     </script>
 </body>
 </html> 
